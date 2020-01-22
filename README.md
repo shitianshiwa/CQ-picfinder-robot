@@ -16,7 +16,7 @@
 - 明日方舟公开招募计算
 - 定时提醒
 
-详细说明请移步 [Wiki](../../wiki)
+详细说明请移步 [Wiki](https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki)
 
 ## TODO
 

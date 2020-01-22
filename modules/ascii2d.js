@@ -16,28 +16,26 @@ async function doSearch(url) {
     let host = hosts[hostsI++ % hosts.length];
     if (host === 'ascii2d.net') host = `https://${host}`;
     else if (!/^https?:\/\//.test(host)) host = `http://${host}`;
-    let { colorURL, colorDetail } = await get(`${host}/search/url/${encodeURIComponent(url)}`).then(r => ({
+    let { colorURL, colorHTML } = await get(`${host}/search/url/${encodeURIComponent(url)}`).then(r => ({
         colorURL: r.request.res.responseUrl,
-        colorDetail: getDetail(r, host),
+        colorHTML: r.data,
     }));
     let bovwURL = colorURL.replace('/color/', '/bovw/');
-    let bovwDetail = await get(bovwURL).then(r => getDetail(r, host));
+    let bovwHTML = await get(bovwURL).then(r => r.data);
     return {
-        color: 'ascii2d 色合検索\n' + getShareText(colorDetail),
-        bovw: 'ascii2d 特徴検索\n' + getShareText(bovwDetail),
+        color: 'ascii2d 色合検索\n' + getShareText(getDetail(colorHTML, host)),
+        bovw: 'ascii2d 特徴検索\n' + getShareText(getDetail(bovwHTML, host)),
     };
 }
 
 /**
  * 解析 ascii2d 网页结果
  *
- * @param {string} ret ascii2d response
+ * @param {string} html ascii2d HTML
  * @param {string} baseURL ascii2d base URL
  * @returns 画像搜索结果
  */
-function getDetail(ret, baseURL) {
-    let result = {};
-    const html = ret.data;
+function getDetail(html, baseURL) {
     const $ = Cheerio.load(html, {
         decodeEntities: false,
     });
@@ -48,20 +46,15 @@ function getDetail(ret, baseURL) {
         if ($link.length === 0) continue;
         const $title = $($link[0]);
         const $author = $($link[1]);
-        result = {
+        return {
             thumbnail: baseURL + $box.find('.image-box img').attr('src'),
             title: $title.html(),
             author: $author.html(),
             url: $title.attr('href'),
             author_url: $author.attr('href'),
         };
-        break;
     }
-    if (!result.url) {
-        console.error(`${new Date().toLocaleString()} [error] ascii2d getDetail`);
-        console.error(ret);
-    }
-    return result;
+    return {};
 }
 
 function getShareText({ url, title, author, thumbnail, author_url }) {

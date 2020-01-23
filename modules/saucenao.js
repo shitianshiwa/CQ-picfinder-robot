@@ -1,10 +1,11 @@
-import { get } from './axiosProxy';
+import {get } from './axiosProxy';
 import nhentai from './nhentai';
 import getSource from './getSource';
 import CQ from './CQcode';
 import config from './config';
 import shorten from './urlShorten/is.gd';
 import { parse } from 'url';
+import logger2 from './logger2';
 
 const hosts = config.saucenaoHost;
 let hostsI = 0;
@@ -45,8 +46,10 @@ async function doSearch(imgURL, db, debug = false) {
 
             //如果是调试模式
             if (debug) {
-                console.log(`\n[debug] saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
-                console.log(JSON.stringify(data));
+                logger2.info(`\n[debug] saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
+                logger2.info(JSON.stringify(data));
+                //console.log(`\n[debug] saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
+                //console.log(JSON.stringify(data));
             }
 
             //确保回应正确
@@ -94,7 +97,7 @@ async function doSearch(imgURL, db, debug = false) {
                 if (similarity < 60) {
                     lowAcc = true;
                     warnMsg += CQ.escape(`相似度[${similarity}%]过低，如果这不是你要找的图，那么可能：确实找不到此图/图为原图的局部图/图清晰度太低/搜索引擎尚未同步新图\n`);
-                    if (db == snDB.all || db == snDB.pixiv) warnMsg += '自动使用 ascii2d 进行搜索\n';
+                    if (config.picfinder.useAscii2dWhenLowAcc && (db == snDB.all || db == snDB.pixiv)) { warnMsg += '自动使用 ascii2d 进行搜索\n'; }
                 }
 
                 //回复的消息
@@ -112,8 +115,10 @@ async function doSearch(imgURL, db, debug = false) {
                 if (bookName) {
                     bookName = bookName.replace('(English)', '');
                     const book = await nhentai(bookName).catch(e => {
-                        console.error(`${new Date().toLocaleString()} [error] nhentai`);
-                        console.error(e);
+                        logger2.error(`${new Date().toLocaleString()} [error] nhentai`);
+                        logger2.error(e);
+                        //console.error(`${new Date().toLocaleString()} [error] nhentai`);
+                        //console.error(e);
                         return false;
                     });
                     //有本子搜索结果的话
@@ -144,26 +149,39 @@ async function doSearch(imgURL, db, debug = false) {
                         break;
 
                     default:
-                        console.error(data);
+                        logger2.error(data);
+                        //console.error(data);
                         msg = `saucenao[${hostIndex}] ${data.header.message}`;
                         break;
                 }
             } else {
-                console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
-                console.error(data);
+                logger2.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
+                logger2.error(data);
+                //console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
+                //console.error(data);
             }
         })
         .catch(e => {
-            console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
+            logger2.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
+            //console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
             if (e.response) {
                 if (e.response.status == 429) {
                     msg = `saucenao[${hostIndex}] 搜索次数已达单位时间上限，请稍候再试`;
                     excess = true;
-                } else console.error(e.response.data);
-            } else console.error(e);
+                } else {
+                    logger2.error(e.response.data);
+                    /*console.error(e.response.data);*/
+                }
+            } else {
+                logger2.error(e);
+                /*console.error(e);*/
+            }
         });
 
-    if (config.picfinder.debug) console.log(`${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
+    if (config.picfinder.debug) {
+        logger2.info(`[debug]${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
+        //console.log(`${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
+    }
 
     return {
         success,

@@ -14,6 +14,8 @@
         "addFriendAnswers": [],
         "autoAddGroup": false,
         "saucenaoDefaultDB": "all",
+        "useAscii2dWhenQuotaExcess": true,
+        "useAscii2dWhenLowAcc": true,
         "ascii2dsuotucishu": 100,
         "searchLimit": 30,
         "searchModeTimeout": 60,

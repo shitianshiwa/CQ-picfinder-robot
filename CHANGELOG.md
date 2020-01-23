@@ -2,9 +2,16 @@
 
 ## 2020
 
+### 1-21 v2.11.2
+
+- 增加配置项用于控制是否在 saucenao 结果低相似度或配额耗尽时使用 ascii2d
+- 配置项变更
+  - A `picfinder.useAscii2dWhenQuotaExcess`
+  - A `picfinder.useAscii2dWhenLowAcc`
+
 ### 1-15 v2.11.1
 
-- 因酷Q不支持本地发送大于 4M 的图片，因此开启反和谐后如果没有开启 size1200 并且原图大小超过 3M，将会自动使用 size1200 ([#40](/../../issues/40))
+- 因酷Q不支持本地发送大于 4M 的图片，因此开启反和谐后如果没有开启 size1200 并且原图大小超过 3M，将会自动使用 size1200 ([#40](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/40))
 
 ## 2019
 
@@ -15,7 +22,7 @@
 - saucenao, whatanime, ascii2d 的自定义域名支持带上协议，即支持以下写法
   - `example.com`：将会使用`http://example.com`；特殊地，上面三者的官方域名将会使用 https
   - `http://example.com`或`https://example.com`
-- 支持[群发消息](../../wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E7%BE%A4%E5%8F%91%E6%B6%88%E6%81%AF)
+- 支持[群发消息](https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E7%BE%A4%E5%8F%91%E6%B6%88%E6%81%AF)
 - 配置项变更
   - A `ascii2dHost`
 

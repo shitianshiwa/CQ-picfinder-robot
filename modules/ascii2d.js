@@ -1,7 +1,8 @@
-import { get } from './axiosProxy';
+import {get } from './axiosProxy';
 import Cheerio from 'cheerio';
 import CQ from './CQcode';
 import config from './config';
+import logger2 from './logger2';
 
 const hosts = config.ascii2dHost;
 let hostsI = 0;
@@ -16,26 +17,28 @@ async function doSearch(url) {
     let host = hosts[hostsI++ % hosts.length];
     if (host === 'ascii2d.net') host = `https://${host}`;
     else if (!/^https?:\/\//.test(host)) host = `http://${host}`;
-    let { colorURL, colorHTML } = await get(`${host}/search/url/${encodeURIComponent(url)}`).then(r => ({
+    let { colorURL, colorDetail } = await get(`${host}/search/url/${encodeURIComponent(url)}`).then(r => ({
         colorURL: r.request.res.responseUrl,
-        colorHTML: r.data,
+        colorDetail: getDetail(r, host),
     }));
     let bovwURL = colorURL.replace('/color/', '/bovw/');
-    let bovwHTML = await get(bovwURL).then(r => r.data);
+    let bovwDetail = await get(bovwURL).then(r => getDetail(r, host));
     return {
-        color: 'ascii2d 色合検索\n' + getShareText(getDetail(colorHTML, host)),
-        bovw: 'ascii2d 特徴検索\n' + getShareText(getDetail(bovwHTML, host)),
+        color: 'ascii2d 色合検索\n' + getShareText(colorDetail),
+        bovw: 'ascii2d 特徴検索\n' + getShareText(bovwDetail),
     };
 }
 
 /**
  * 解析 ascii2d 网页结果
  *
- * @param {string} html ascii2d HTML
+ * @param {string} ret ascii2d response
  * @param {string} baseURL ascii2d base URL
  * @returns 画像搜索结果
  */
-function getDetail(html, baseURL) {
+function getDetail(ret, baseURL) {
+    let result = {};
+    const html = ret.data;
     const $ = Cheerio.load(html, {
         decodeEntities: false,
     });
@@ -46,23 +49,30 @@ function getDetail(html, baseURL) {
         if ($link.length === 0) continue;
         const $title = $($link[0]);
         const $author = $($link[1]);
-        return {
+        result = {
             thumbnail: baseURL + $box.find('.image-box img').attr('src'),
             title: $title.html(),
             author: $author.html(),
             url: $title.attr('href'),
             author_url: $author.attr('href'),
         };
+        break;
     }
-    return {};
+    if (!result.url) {
+        logger2.error(`${new Date().toLocaleString()} [error] ascii2d getDetail`);
+        logger2.error(ret);
+        //console.error(`${new Date().toLocaleString()} [error] ascii2d getDetail\n${ret}`);
+        //console.error(ret);
+    }
+    return result;
 }
 
 function getShareText({ url, title, author, thumbnail, author_url }) {
-    if (!url) return '由未知错误导致搜索失败';
+    if (!url) { return '由未知错误导致搜索失败'; }
     let text = `「${title}」/「${author}」
-${CQ.img(thumbnail)}
-${pixivShorten(url)}`;
-    if (author_url) text += `\nAuthor: ${pixivShorten(author_url)}`;
+    ${CQ.img(thumbnail)}
+    ${pixivShorten(url)}`;
+    if (author_url) { text += `\nAuthor: ${pixivShorten(author_url)}`; }
     return text;
 }
 
@@ -74,9 +84,9 @@ ${pixivShorten(url)}`;
  */
 function pixivShorten(url) {
     let pidSearch = /pixiv.+illust_id=([0-9]+)/.exec(url);
-    if (pidSearch) return 'https://pixiv.net/i/' + pidSearch[1];
+    if (pidSearch) { return 'https://pixiv.net/i/' + pidSearch[1]; }
     let uidSearch = /pixiv.+member\.php\?id=([0-9]+)/.exec(url);
-    if (uidSearch) return 'https://pixiv.net/u/' + uidSearch[1];
+    if (uidSearch) { return 'https://pixiv.net/u/' + uidSearch[1]; }
     return url;
 }
 

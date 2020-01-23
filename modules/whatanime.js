@@ -3,6 +3,7 @@ import Request from 'request';
 import Qs from 'querystring';
 import CQ from './CQcode';
 import config from './config';
+import logger2 from './logger2';
 
 const hosts = config.whatanimeHost;
 let hostsI = 0;
@@ -29,8 +30,10 @@ async function doSearch(imgURL, debug = false) {
     await getSearchResult(imgURL, hosts[hostIndex])
         .then(async ret => {
             if (debug) {
-                console.log(`\n[debug] whatanime[${hostIndex}]:`);
-                console.log(JSON.stringify(ret.data));
+                logger2.info(`\n[debug] whatanime[${hostIndex}]:`);
+                logger2.info(JSON.stringify(ret.data));
+                //console.log(`\n[debug] whatanime[${hostIndex}]:`);
+                //console.log(JSON.stringify(ret.data));
             }
 
             let retcode = ret.code;
@@ -44,7 +47,8 @@ async function doSearch(imgURL, debug = false) {
             let quota = ret.quota; //剩余搜索次数
             let expire = ret.expire; //次数重置时间
             if (ret.docs.length == 0) {
-                console.log(`${new Date().toLocaleString()} [out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
+                logger2.info(`${new Date().toLocaleString()} [out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
+                //console.log(`${new Date().toLocaleString()} [out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
                 msg = `WhatAnime：当前剩余可搜索次数貌似用光啦！请等待${expire}秒后再试！`;
                 return;
             }
@@ -95,10 +99,14 @@ async function doSearch(imgURL, debug = false) {
                 success = true;
             });
 
-            if (config.picfinder.debug) console.log(`\n[whatanime][${hostIndex}]\n${msg}`);
+            if (config.picfinder.debug) {
+                logger2.info(`\n[debug][whatanime][${hostIndex}]\n${msg}`);
+                //console.log(`\n[debug][whatanime][${hostIndex}]\n${msg}`);
+            }
         })
         .catch(e => {
-            console.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
+            logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
+            //console.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
         });
 
     return {
@@ -123,49 +131,51 @@ async function getSearchResult(imgURL, host) {
     };
     //取得whatanime返回json
     await Axios.get(imgURL, {
-        responseType: 'arraybuffer', //为了转成base64
-    })
+            responseType: 'arraybuffer', //为了转成base64
+        })
         .then(
             async ret =>
-                new Promise((resolve, reject) => {
-                    //由于axios无法自定义UA会被block，因此使用request
-                    Request.post(
-                        `${host}/search`,
-                        {
-                            headers: {
-                                accept: 'application/json, text/javascript, */*; q=0.01',
-                                'accept-language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en;q=0.7',
-                                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                                referer: waURL,
-                                'user-agent': UA,
-                                'x-requested-with': 'XMLHttpRequest',
-                            },
-                            body: Qs.stringify({
-                                data: Buffer.from(ret.data, 'binary').toString('base64'),
-                                filter: '',
-                                trial: 2,
-                            }),
+            new Promise((resolve, reject) => {
+                //由于axios无法自定义UA会被block，因此使用request
+                Request.post(
+                    `${host}/search`, {
+                        headers: {
+                            accept: 'application/json, text/javascript, */*; q=0.01',
+                            'accept-language': 'zh-CN,zh;q=0.9,zh-TW;q=0.8,en;q=0.7',
+                            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                            referer: waURL,
+                            'user-agent': UA,
+                            'x-requested-with': 'XMLHttpRequest',
                         },
-                        (err, res, body) => {
-                            if (err) {
-                                reject(err);
-                                return;
-                            }
-                            //json转换可能出错
-                            try {
-                                json.data = JSON.parse(body);
-                            } catch (jsonErr) {
-                                if (body.indexOf('413') !== -1) json.code = 413;
-                                reject(413);
-                                return;
-                            }
-                            resolve();
+                        body: Qs.stringify({
+                            data: Buffer.from(ret.data, 'binary').toString('base64'),
+                            filter: '',
+                            trial: 2,
+                        }),
+                    },
+                    (err, res, body) => {
+                        if (err) {
+                            reject(err);
+                            return;
                         }
-                    );
-                })
+                        //json转换可能出错
+                        try {
+                            json.data = JSON.parse(body);
+                        } catch (jsonErr) {
+                            if (body.indexOf('413') !== -1) json.code = 413;
+                            reject(413);
+                            return;
+                        }
+                        resolve();
+                    }
+                );
+            })
         )
         .catch(e => {
-            if (e != 413) console.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+            if (e != 413) {
+                logger2.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+                //console.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+            }
         });
 
     return json;
@@ -181,8 +191,7 @@ function getAnimeInfo(anilistID) {
     return new Promise((resolve, reject) => {
         //由于axios无法自定义UA会被block，因此使用request
         Request.get(
-            waURL + '/info?anilist_id=' + anilistID,
-            {
+            waURL + '/info?anilist_id=' + anilistID, {
                 headers: {
                     'user-agent': UA,
                 },

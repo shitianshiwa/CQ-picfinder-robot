@@ -6,6 +6,7 @@ import CQcode from '../CQcode';
 import { resolve as resolveURL } from 'url';
 import NamedRegExp from 'named-regexp-groups';
 import { createCanvas, loadImage } from 'canvas';
+import logger2 from '../logger2';
 
 const zza = Buffer.from('aHR0cHM6Ly9hcGkubG9saWNvbi5hcHAvc2V0dS96aHV6aHUucGhw', 'base64').toString('utf8');
 const setting = config.picfinder.setu;
@@ -97,13 +98,16 @@ function sendSetu(context, replyFunc, logger, bot) {
                                 resolve(canvas.toDataURL().split(',')[1]);
                             })
                             .catch(e => {
-                                console.error('[error] loadImage');
-                                console.error(e);
+                                logger2.error('[error] loadImage');
+                                logger2.error(e);
+                                //console.error('[error] loadImage');
+                                //console.error(e);
                                 reject(e);
                             });
                     } else resolve(false);
                 }).catch(e => {
-                    console.error(`${new Date().toLocaleString()} [error] anti shielding\n${url}\n${e}`);
+                    logger2.error(`${new Date().toLocaleString()} [error] anti shielding\n${url}\n${e}`);
+                    //console.error(`${new Date().toLocaleString()} [error] anti shielding\n${url}\n${e}`);
                     replyFunc(context, '反和谐发生错误，详情请看错误日志', true);
                     return false;
                 });
@@ -119,12 +123,14 @@ function sendSetu(context, replyFunc, logger, bot) {
                             }, delTime * 1000);
                     })
                     .catch(e => {
-                        console.error(`${new Date().toLocaleString()} [error] delete msg\n${e}`);
+                        logger2.error(`${new Date().toLocaleString()} [error] delete msg\n${e}`);
+                        //console.error(`${new Date().toLocaleString()} [error] delete msg\n${e}`);
                     });
                 logger.doneSearch(context.user_id, 'setu');
             })
             .catch(e => {
-                console.error(`${new Date().toLocaleString()}\n${e}`);
+                logger2.error(`${new Date().toLocaleString()}\n${e}`);
+                //console.error(`${new Date().toLocaleString()}\n${e}`);
                 replyFunc(context, replys.setuError, true);
             });
         return true;

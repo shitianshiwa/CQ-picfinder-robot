@@ -695,12 +695,12 @@ async function searchImg(context, customDB = -1) {
                             jishu++;
                             bot('send_private_msg', {
                                 user_id: context.user_id,
-                                message: jishu.toString() + "\n" + waRet.msg + "\n" + waRet.msg + "\n---",
+                                message: jishu.toString() + "\n" + waRet.msg + "\n---",
                             }).catch(err => { logger2.error(new Date().toString() + ",WhatAnime," + err) });
                         } else {
                             bot('send_private_msg', {
                                 user_id: context.user_id,
-                                message: waRet.msg + "\n" + waRet.msg + "\n---",
+                                message: waRet.msg + "\n---",
                             }).catch(err => { logger2.error(new Date().toString() + ",WhatAnime," + err) });
                         }
                         //replyMsg(context, waRet.msg);

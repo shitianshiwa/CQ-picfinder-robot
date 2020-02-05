@@ -2,6 +2,20 @@
 
 ## 2020
 
+### 2-03 v2.11.5
+
+- 增加 SauceNao 低相似度值自定义配置
+- 增加“SauceNao 结果相似度过低时结果缩略图的替代文字”的配置
+- 配置项变更
+  - A `picfinder.saucenaoLowAcc`
+  - A `picfinder.replys.lowAccImgPlaceholder`
+
+### 2-01 v2.11.4
+
+- 增加“SauceNao 结果相似度过低时隐藏结果缩略图”的配置
+- 配置项变更
+  - A `picfinder.saucenaoHideImgWhenLowAcc`
+
 ### 1-29 v2.11.3
 
 - 增加对`http://www.pixiv.net/(artworks|users)/[0-9]+`链接的短缩

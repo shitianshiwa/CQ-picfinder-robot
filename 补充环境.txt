@@ -19,6 +19,10 @@ npm config set https-proxy http://127.0.0.1:1080
 
 npm config delete proxy
 npm config delete https-proxy
+---
+还不行
+npm cache clean -f 再尝试上面的
+再不行的话还是取消代理然后用 sstap 吧
 
 https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/42
 ---

@@ -405,7 +405,7 @@ function returnmsg(context, xuanze) {
             break;
         case 1:
             let temp2 = `群聊需@机器人发送图片并加上参数才行，私聊仅需加上参数。示例：指定某个语言"图片 --ocr --l=jp" 或者 使用默认语言(日语)"图片 --ocr"\n作者的使用说明：https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#ocr-%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB \n使用的ocr：https://ocr.space/ (国内可能无法访问该服务)[CQ:image,file=xiaoxi/13.jpg]`;
-            let s = ['--ocr(默认日语)', '--ocr --l=zh(简体中文)|zht(繁体中文)|jp(日文)|en(英文)|ko(韩语)|fr(法语)|ge(德语)|ru(俄语),需要根据图片内的文字选择一种语言,不选就默认日语'];
+            let s = ['--ocr(默认日语)', '--ocr --L=zh(简体中文)|zht(繁体中文)|jp(日文)|en(英文)|ko(韩语)|fr(法语)|ge(德语)|ru(俄语),需要根据图片内的文字选择一种语言,不选就默认日语'];
             if (context.message_type == 'group') {
                 replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + temp2);
                 for (let i = 0; i < s.length; i++) {
@@ -476,81 +476,88 @@ async function searchImg(context, customDB = -1) {
     const imgs = getImgs(msg);
     var pic_m = false;
     var jishu = 0;
-    for (const img of imgs) {
-        if (args['url']) replyMsg(context, img.url.replace(/\/[0-9]+\//, '//').replace(/\?.*$/, ''));
-        else {
-            //获取缓存
-            let hasCache = false;
-            if (sqlEnable && !args.purge) {
-                const sql = new PFSql();
-                const cache = await sql.getCache(img.file, db); //仅图片名字判断？
-                sql.close();
+    var tupianshu = imgs.length;
+    var t = setInterval(async() => {
+        if (tupianshu > 0) {
+            let img = imgs[imgs.length - tupianshu];
+            tupianshu--;
+            if (args['url']) replyMsg(context, img.url.replace(/\/[0-9]+\//, '//').replace(/\?.*$/, ''));
+            else {
+                //获取缓存
+                let hasCache = false;
+                if (sqlEnable && !args.purge) {
+                    const sql = new PFSql();
+                    const cache = await sql.getCache(img.file, db); //仅图片名字判断？
+                    sql.close();
 
-                //如果有缓存
-                if (cache) {
-                    hasCache = true;
-                    if (context.message_type == 'group') {
-                        if (pic_m == false) {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]\n因为搜任何图片返回的结果都有风险，所以必须转发到私聊`);
-                            if (imgs.length > 0) {
-                                pic_m = true;
+                    //如果有缓存
+                    if (cache) {
+                        hasCache = true;
+                        if (context.message_type == 'group') {
+                            if (pic_m == false) {
+                                replyMsg(context, `[CQ:at,qq=${context.user_id}]\n因为搜任何图片返回的结果都有风险，所以必须转发到私聊`);
+                                if (imgs.length > 0) {
+                                    pic_m = true;
+                                }
                             }
+                            //replyMsg(context, `因为搜索到的结果有风险，所以自动转发到私聊`);
                         }
-                        //replyMsg(context, `因为搜索到的结果有风险，所以自动转发到私聊`);
-                    }
-                    jishu++;
-                    bot('send_private_msg', {
-                        user_id: context.user_id,
-                        message: jishu.toString(),
-                    });
-                    for (var cmsg in cache) {
+                        jishu++;
+                        bot('send_private_msg', {
+                            user_id: context.user_id,
+                            message: jishu.toString(),
+                        });
+                        for (var cmsg in cache) {
+                            bot('send_private_msg', {
+                                user_id: context.user_id,
+                                message: `&#91;缓存&#93; ${cache[cmsg]}`,
+                            });
+                        }
+                        bot('send_private_msg', {
+                            user_id: context.user_id,
+                            message: `---`,
+                        });
+                        //console.log(cmsg);
+                        /*if (cmsg == 0) {
+                            if (cache[cmsg].indexOf('nhentai.net') !== -1) {
+                                if (context.message_type == 'group') {
+                                    replyMsg(context, `因为搜索到的是本子结果，所以自动转发到私聊`);
+                                }
+                                //改为私聊
+                                bot('send_private_msg', {
+                                    user_id: context.user_id,
+                                    message: saRet.msg,
+                                });
+                            } else {
+                                replyMsg(context, `&#91;缓存&#93; ${cache[cmsg]}`);
+                                if (cache.length > 1 && context.message_type == 'group') {
+                                    replyMsg(context, `因为搜索到的结果有风险，所以自动转发到私聊`);
+                                }
+                            }
+                        } else {
+                        //改为私聊
                         bot('send_private_msg', {
                             user_id: context.user_id,
                             message: `&#91;缓存&#93; ${cache[cmsg]}`,
                         });
+                        }*/
+                        //replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
+                        /*for (const cmsg of cache) {
+                            //console.log(msg);
+                            replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
+                        }*/
                     }
-                    bot('send_private_msg', {
-                        user_id: context.user_id,
-                        message: `---`,
-                    });
-                    //console.log(cmsg);
-                    /*if (cmsg == 0) {
-                        if (cache[cmsg].indexOf('nhentai.net') !== -1) {
-                            if (context.message_type == 'group') {
-                                replyMsg(context, `因为搜索到的是本子结果，所以自动转发到私聊`);
-                            }
-                            //改为私聊
-                            bot('send_private_msg', {
-                                user_id: context.user_id,
-                                message: saRet.msg,
-                            });
-                        } else {
-                            replyMsg(context, `&#91;缓存&#93; ${cache[cmsg]}`);
-                            if (cache.length > 1 && context.message_type == 'group') {
-                                replyMsg(context, `因为搜索到的结果有风险，所以自动转发到私聊`);
-                            }
-                        }
-                    } else {
-                    //改为私聊
-                    bot('send_private_msg', {
-                        user_id: context.user_id,
-                        message: `&#91;缓存&#93; ${cache[cmsg]}`,
-                    });
-                    }*/
-                    //replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
-                    /*for (const cmsg of cache) {
-                        //console.log(msg);
-                        replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
-                    }*/
                 }
-            }
 
-            if (!hasCache) {
-                let t = setTimeout(async() => {
-                    clearTimeout(t);
+                if (!hasCache) {
+                    //let t2 = setTimeout(async() => {
+                    //    clearTimeout(t2);
                     //检查搜图次数
-                    if (context.user_id != setting.admin && !logger.canSearch(context.user_id, setting.searchLimit)) {
-                        replyMsg(context, setting.replys.personLimit);
+                    let searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
+                    //console.log(searchLimit);
+                    //if (context.user_id != setting.admin && !logger.canSearch(context.user_id, setting.searchLimit)) {
+                    if (context.user_id != setting.admin && searchLimit == setting.searchLimit) {
+                        replyMsg(context, setting.replys.personLimit + ",今日搜索次数:" + searchLimit.toString());
                         return;
                     }
 
@@ -626,7 +633,7 @@ async function searchImg(context, customDB = -1) {
                                 const errMsg = (asErr.response && asErr.response.data.length < 50 && `\n${asErr.response.data}`) || '';
                                 bot('send_private_msg', {
                                     user_id: context.user_id,
-                                    message: "\n今日使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, //ascii2d因未知原因搜索失败
+                                    message: "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, //ascii2d因未知原因搜索失败
                                 });
                                 logger2.error(`${getTime()} [error] Ascii2d`);
                                 logger2.error(asErr);
@@ -647,17 +654,17 @@ async function searchImg(context, customDB = -1) {
                                     jishu++;
                                     bot('send_private_msg', {
                                         user_id: context.user_id,
-                                        message: jishu + "\n今日使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
+                                        message: jishu + "\n今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
                                     }).catch(err => { logger2.error(new Date().toString() + ",ascii2d," + err) });
                                 } else if (useWhatAnime) {
                                     bot('send_private_msg', {
                                         user_id: context.user_id,
-                                        message: "今日使用次数:" + temp + "\n" + color + "\n" + bovw,
+                                        message: "今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw,
                                     }).catch(err => { logger2.error(new Date().toString() + ",ascii2d," + err) });
                                 } else {
                                     bot('send_private_msg', {
                                         user_id: context.user_id,
-                                        message: "今日使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
+                                        message: "今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
                                     }).catch(err => { logger2.error(new Date().toString() + ",ascii2d," + err) });
                                 }
                                 needCacheMsgs.push(color);
@@ -706,17 +713,22 @@ async function searchImg(context, customDB = -1) {
                         //replyMsg(context, waRet.msg);
                         if (waRet.msg.length > 0) needCacheMsgs.push(waRet.msg);
                     }
-                    if (success) logger.doneSearch(context.user_id);
+                    if (success) { logger.doneSearch(context.user_id); }
+                    searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
+                    replyMsg(context, "今日搜索次数:" + searchLimit.toString());
                     //将需要缓存的信息写入数据库
                     if (sqlEnable && success) {
                         const sql = new PFSql();
                         await sql.addCache(img.file, db, needCacheMsgs);
                         sql.close();
                     }
-                }, 1000);
+                    //}, 1000);
+                }
             }
+        } else {
+            clearInterval(t);
         }
-    }
+    }, 8000);
 }
 
 /*
@@ -743,7 +755,7 @@ function doOCR(context) {
     const msg = context.message;
     const imgs = getImgs(msg);
     let lang = null;
-    const langSearch = /(?<=--l=)[a-zA-Z]{2,3}/.exec(msg);
+    const langSearch = /(?<=--L=)[a-zA-Z]{2,3}/.exec(msg);
     //console.log(msg);
     //console.log(langSearch);
     if (langSearch) { lang = langSearch[0]; }

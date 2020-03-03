@@ -404,7 +404,7 @@ function returnmsg(context, xuanze) {
             }
             break;
         case 1:
-            let temp2 = `群聊需@机器人发送图片并加上参数才行，私聊仅需加上参数。示例：指定某个语言"图片 --ocr --l=jp" 或者 使用默认语言(日语)"图片 --ocr"\n作者的使用说明：https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#ocr-%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB \n使用的ocr：https://ocr.space/ (国内可能无法访问该服务)[CQ:image,file=xiaoxi/13.jpg]`;
+            let temp2 = `群聊需@机器人发送图片并加上参数才行，私聊仅需加上参数。示例：指定某个语言"图片 --ocr --L=jp" 或者 使用默认语言(日语)"图片 --ocr"\n作者的使用说明：https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#ocr-%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB \n使用的ocr：https://ocr.space/ (国内可能无法访问该服务)[CQ:image,file=xiaoxi/13.jpg]`;
             let s = ['--ocr(默认日语)', '--ocr --L=zh(简体中文)|zht(繁体中文)|jp(日文)|en(英文)|ko(韩语)|fr(法语)|ge(德语)|ru(俄语),需要根据图片内的文字选择一种语言,不选就默认日语'];
             if (context.message_type == 'group') {
                 replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + temp2);

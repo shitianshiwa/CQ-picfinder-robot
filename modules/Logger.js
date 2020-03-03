@@ -195,7 +195,6 @@ class Logger {
      */
     canSearch(u, limit, key = 'search') {
         if (!this.searchCount[u]) this.searchCount[u] = {};
-
         if (key == 'setu') {
             if (!this.searchCount[u][key])
                 this.searchCount[u][key] = {
@@ -207,11 +206,12 @@ class Logger {
             if (setuLog.date + limit.cd * 1000 > new Date().getTime() || setuLog.count >= limit.value) return false;
             return true;
         }
-
-        if (limit == 0) return true;
+        if (limit == 0) { return true; } //不限制搜图数量
         if (!this.searchCount[u][key]) this.searchCount[u][key] = 0;
-        if (this.searchCount[u][key] < limit) return true;
-        return false;
+        return this.searchCount[u][key];
+        //console.log(this.searchCount[u][key]);
+        //if (this.searchCount[u][key] < limit) return true;
+        //return false;
     }
 
     /**

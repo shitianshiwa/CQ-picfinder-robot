@@ -37,3 +37,5 @@ node-gyp -g install -g canvas
 npm install --unsafe-perm
 npm install windows-build-tools
 npm install --global --production windows-build-tools
+npm clean-install
+npm h

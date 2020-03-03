@@ -13,7 +13,9 @@
         "autoAddFriend": false,
         "addFriendAnswers": [],
         "autoAddGroup": false,
+        "saucenaoLowAcc": 60,
         "saucenaoDefaultDB": "all",
+        "saucenaoHideImgWhenLowAcc": false,
         "useAscii2dWhenQuotaExcess": true,
         "useAscii2dWhenLowAcc": true,
         "ascii2dsuotucishu": 100,
@@ -52,6 +54,7 @@
         "replys": {
             "default": "必须要发送图片我才能帮你找噢_(:3」)=\n输入'。搜图'可以了解更多详情(需要图片识文功能请输入'ocr'查看说明)\n可以在同一条消息中包含多张图片，会自动批量搜索。(若在群内搜索，结果会自动转发到私聊)\n搜索图片时可以在消息内包含以下参数来指定搜索范围或者使用某项功能，参数之间互斥，优先级从上到下\n--url：获取图片的在线链接（不会搜图,只是返回你发送的图片）\n--a2d：使用 ascii2d 进行搜索（优势在于可搜索局部图,主要范围为pixiv，twitter的图）\n--pixiv：从P站中搜索\n--danbooru：从 Danbooru 中搜索\n--book：搜索本子\n--anime：搜索番剧(完整截图才能高几率找到结果)\n对于 saucenao\n如果得到的结果相似度低于60%，会自动使用 ascii2d 进行搜索\n如果额度耗尽，会自动使用 ascii2d 进行搜索(如果这个也炸了就只能搜索以前搜索过的缓存结果)\n如果搜索到本子，会自动在 nhentai 中搜索并返回链接（如果有汉化本会优先返回汉化本链接）\n如果搜到番剧，会自动使用 WhatAnime 搜索番剧详细信息\nAnimeDB 与 WhatAnime 的结果可能会不一致，是正常现象，毕竟这是两个不同的搜索引擎\n同时展示这两个搜索的目的是为了尽力得到你可能想要的识别结果\n--------------\n在私聊时直接发送图库关键字\n此时你发出来的下一张图（只有下一张，也就是一次性的）会使用指定搜索库\n图库关键字\nall：默认的全范围搜索模式\n以下与上方“使用”中描述的搜索参数功能相同\npixiv\ndanbooru\nbook\nanime\n--------------\n在搜图时加入--purge参数可以无视缓存搜图并更新缓存（saucenao和ascii2d都炸的情况下，这个没有用。搜图存在返回结果可能缺失图片的问题，原因可能是对应搜索引擎本来就缺失图片或者网络问题）",
             "debug": "维护升级中，暂时不能使用，抱歉啦~",
+            "lowAccImgPlaceholder": "根据设置，低相似度结果的缩略图不予显示",
             "personLimit": "您今天搜的图太多辣！休息一下明天再来搜吧~",
             "failed": "搜索失败惹 QAQ\n有可能是服务器网络爆炸，请重试一次",
             "sign": "签到成功，送您10个赞！",
@@ -106,6 +109,7 @@
     "saucenaoHost": [
         "saucenao.com"
     ],
+    "saucenaoApiKey": "",
     "whatanimeHost": [
         "trace.moe"
     ],

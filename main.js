@@ -714,8 +714,6 @@ async function searchImg(context, customDB = -1) {
                         if (waRet.msg.length > 0) needCacheMsgs.push(waRet.msg);
                     }
                     if (success) { logger.doneSearch(context.user_id); }
-                    searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
-                    replyMsg(context, "今日搜索次数:" + searchLimit.toString());
                     //将需要缓存的信息写入数据库
                     if (sqlEnable && success) {
                         const sql = new PFSql();
@@ -726,6 +724,12 @@ async function searchImg(context, customDB = -1) {
                 }
             }
         } else {
+            let searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
+            bot('send_private_msg', {
+                user_id: context.user_id,
+                message: "今日搜索次数:" + searchLimit.toString(),
+            }).catch(err => { logger2.error(new Date().toString() + ",今日搜索次数," + err) });
+            //replyMsg(context, "今日搜索次数:" + searchLimit.toString());
             clearInterval(t);
         }
     }, 8000);

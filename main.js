@@ -572,7 +572,8 @@ async function searchImg(context, customDB = -1) {
                         useSaucenao = true;
                         const saRet = await saucenao(img.url, db, args.debug);
                         if (!saRet.success) success = false;
-                        if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess)) { useAscii2d = true; }
+                        if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess /*saucenao出错处理*/ )) { useAscii2d = true; }
+                        if (saRet.excess) { useWhatAnime = true; } //saucenao出错处理
                         if (!saRet.lowAcc && saRet.msg.indexOf('anidb.net') !== -1) { useWhatAnime = true; }
                         if (db == snDB.anime) { useWhatAnime = true; }
                         if (saRet.msg.length > 0) needCacheMsgs.push(saRet.msg);
@@ -590,12 +591,12 @@ async function searchImg(context, customDB = -1) {
                         if (useAscii2d == true || useWhatAnime == true) {
                             bot('send_private_msg', {
                                 user_id: context.user_id,
-                                message: jishu.toString() + "\n" + saRet.msg + "\n" + saRet.warnMsg,
+                                message: jishu.toString() + "\n" + saRet.msg + saRet.warnMsg,
                             }).catch(err => { logger2.error(new Date().toString() + ",Saucenao," + err) });
                         } else {
                             bot('send_private_msg', {
                                 user_id: context.user_id,
-                                message: jishu.toString() + "\n" + saRet.msg + "\n" + saRet.warnMsg + "\n---",
+                                message: jishu.toString() + "\n" + saRet.msg + saRet.warnMsg + "\n---",
                             }).catch(err => { logger2.error(new Date().toString() + ",Saucenao," + err) });
                         }
                         /*if (saRet.msg.indexOf('nhentai.net') !== -1) {

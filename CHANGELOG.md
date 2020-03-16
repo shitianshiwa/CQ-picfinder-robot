@@ -2,6 +2,19 @@
 
 ## 2020
 
+### 3-14 v2.11.9
+
+- 更换 akhr 数据地址 ([#49](../../issues/49))
+- 增加 whatanime 的 token 设置
+- 配置项变更
+  - A `whatanimeToken`
+
+### 3-9 v2.11.8
+
+- 增加 setu 的 apikey 设置
+- 配置项变更
+  - A `picfinder.setu.apikey`
+
 ### 2-21 v2.11.7
 
 - 修复通用处理完成后未停止事件传播的问题 ([#36](../../issues/36))

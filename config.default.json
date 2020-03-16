@@ -29,6 +29,7 @@
         },
         "setu": {
             "enable": false,
+            "apikey": "",
             "antiShielding": false,
             "allowPM": true,
             "pximgServerPort": "60233",
@@ -108,5 +109,6 @@
     "saucenaoHost": ["saucenao.com"],
     "saucenaoApiKey": "",
     "whatanimeHost": ["trace.moe"],
+    "whatanimeToken": "",
     "ascii2dHost": ["ascii2d.net"]
 }

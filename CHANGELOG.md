@@ -2,6 +2,23 @@
 
 ## 2020
 
+### 3-17 v2.11.10
+
+- 修复定时提醒功能判断分钟级间隔有误的问题
+
+### 3-14 v2.11.9
+
+- 更换 akhr 数据地址 ([#49](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/49))
+- 增加 whatanime 的 token 设置
+- 配置项变更
+  - A `whatanimeToken`
+
+### 3-9 v2.11.8
+
+- 增加 setu 的 apikey 设置
+- 配置项变更
+  - A `picfinder.setu.apikey`
+
 ### 2-21 v2.11.7
 
 - 修复通用处理完成后未停止事件传播的问题 ([#36](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/36))

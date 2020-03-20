@@ -8,8 +8,9 @@ import logger2 from './logger2';
 const hosts = config.whatanimeHost;
 let hostsI = 0;
 
+const token = config.whatanimeToken.trim();
 const waURL = 'https://trace.moe';
-const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36';
+//const UA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36';
 
 /**
  * whatanime搜索
@@ -141,7 +142,7 @@ async function getSearchResult(imgURL, host) {
             responseType: 'arraybuffer', //为了转成base64
         })
         .then(({ data: image }) =>
-            Axios.post(`${host}/api/search`, { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
+            Axios.post(`${host}/api/search` + token ? `?token=${token}` : '', { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
                 json.data = ret.data;
                 if (typeof ret.data === 'string') {
                     json.code = ret.status;

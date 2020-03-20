@@ -30,6 +30,7 @@
         },
         "setu": {
             "enable": false,
+            "apikey": "",
             "antiShielding": false,
             "allowPM": true,
             "pximgServerPort": "60234",
@@ -113,6 +114,7 @@
     "whatanimeHost": [
         "trace.moe"
     ],
+    "whatanimeToken": "",
     "ascii2dHost": [
         "ascii2d.net"
     ]

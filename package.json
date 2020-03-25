@@ -1,6 +1,6 @@
 {
   "name": "cq-picfinder-robot",
-  "version": "2.11.10",
+  "version": "2.11.11",
   "description": "酷Q二次元搜图机器人",
   "main": "index.js",
   "scripts": {
@@ -39,7 +39,7 @@
     "cq-websocket": "1.8.1",
     "cron-parser": "^2.13.0",
     "esm": "3.1.0",
-    "fs-extra": "^8.1.0",
+    "fs-extra": "^9.0.0",
     "https-proxy-agent": "^5.0.0",
     "koa": "^2.11.0",
     "koa-router": "^7.4.0",
@@ -49,12 +49,11 @@
     "mysql-co": "0.0.4",
     "named-regexp-groups": "^1.0.5",
     "nhentai-api": "^2.0.4",
-    "qs": "^6.9.1",
+    "qs": "^6.9.2",
     "querystring": "^0.2.0",
     "random-seed": "^0.3.0",
     "socks-proxy-agent": "^5.0.0",
-    "sqlite": "^3.0.3",
-    "sqlite3": "^4.1.1",
-    "tencentcloud-sdk-nodejs": "^3.0.132"
+    "sqlite": "^3.0.6",
+    "tencentcloud-sdk-nodejs": "3.0.118"
   }
 }

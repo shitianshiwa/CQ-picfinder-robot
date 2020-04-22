@@ -1,6 +1,7 @@
 import Axios from './axiosProxy';
 import CQ from './CQcode';
 import config from './config';
+import logError from './logError';
 
 const hosts = config.whatanimeHost;
 let hostsI = 0;
@@ -98,13 +99,15 @@ async function doSearch(imgURL, debug = false) {
                 })
                 .catch(e => {
                     appendMsg('获取番剧信息失败');
-                    console.error(`${new Date().toLocaleString()} [error] whatanime getAnimeInfo ${e}`);
+                    logError(`${new Date().toLocaleString()} [error] whatanime getAnimeInfo`);
+                    logError(e);
                 });
 
             if (config.picfinder.debug) console.log(`\n[whatanime][${hostIndex}]\n${msg}`);
         })
         .catch(e => {
-            console.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
+            logError(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}]`);
+            logError(e);
         });
 
     return {
@@ -131,20 +134,19 @@ async function getSearchResult(imgURL, host) {
     await Axios.get(imgURL, {
         responseType: 'arraybuffer', //为了转成base64
     })
-        .then(({ data: image }) =>
-            Axios.post(`${host}/api/search` + token ? `?token=${token}` : '', { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
-                json.data = ret.data;
-                if (typeof ret.data === 'string') {
-                    json.code = ret.status;
-                }
-            })
-        )
+        .then(({ data: image }) => Axios.post(`${host}/api/search` + (token ? `?token=${token}` : ''), { image: Buffer.from(image, 'binary').toString('base64') }))
+        .then(ret => {
+            json.data = ret.data;
+            json.code = ret.status;
+        })
         .catch(e => {
-            json.code = e.response.status;
-            json.data = e.response.data;
-            console.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+            if (e.response) {
+                json.code = e.response.status;
+                json.data = e.response.data;
+                logError(`${new Date().toLocaleString()} [error] whatanime`);
+                logError(e);
+            } else throw e;
         });
-
     return json;
 }
 

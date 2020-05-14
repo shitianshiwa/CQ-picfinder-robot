@@ -810,7 +810,8 @@ async function searchImg(context, customDB = -1) {
             }
         } else {
             clearInterval(t);
-            let t = setTimeout(() => {
+            let t2 = setTimeout(() => {
+                clearTimeout(t2);
                 let searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
                 bot('send_private_msg', {
                     user_id: context.user_id,

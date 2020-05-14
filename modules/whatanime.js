@@ -4,6 +4,8 @@ import Axios from './axiosProxy';
 import CQ from './CQcode';
 import config from './config';
 import logger2 from './logger2';
+//import logError from './logError';
+
 
 const hosts = config.whatanimeHost;
 let hostsI = 0;
@@ -59,7 +61,7 @@ async function doSearch(imgURL, debug = false) {
 
             //提取信息
             let doc = ret.docs[0]; //相似度最高的结果
-            let similarity = doc.similarity.toFixed(2); //相似度
+            let similarity = (doc.similarity * 100).toFixed(2); //相似度
             let jpName = doc.title_native || ''; //日文名
             let romaName = doc.title_romaji || ''; //罗马音
             let cnName = doc.title_chinese || ''; //中文名
@@ -113,7 +115,8 @@ async function doSearch(imgURL, debug = false) {
             }
         })
         .catch(e => {
-            logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
+            logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${e}`);
+            //logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
             //console.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
         });
 
@@ -141,21 +144,32 @@ async function getSearchResult(imgURL, host) {
     await Axios.get(imgURL, {
             responseType: 'arraybuffer', //为了转成base64
         })
-        .then(({ data: image }) =>
-            Axios.post(`${host}/api/search` + token ? `?token=${token}` : '', { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
+        /*.then(({ data: image }) =>
+            Axios.post(`${host}/api/search` + (token ? `?token=${token}` : ''), { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
+                //Axios.post(`${host}/api/search`, { image: Buffer.from(image, 'binary').toString('base64') }).then(ret => {
                 json.data = ret.data;
                 if (typeof ret.data === 'string') {
                     json.code = ret.status;
                 }
             })
-        )
+        )*/
+        .then(({ data: image }) =>
+            Axios.post(`${host}/api/search` + (token ? `?token=${token}` : ''), { image: Buffer.from(image, 'binary').toString('base64') })).then(ret => {
+            json.data = ret.data;
+            json.code = ret.status;
+        })
         .catch(e => {
             //if (e != 413) {
-            json.code = e.response.status;
-            json.data = e.response.data;
-            logger2.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+            //json.code = e.response.status;
+            //json.data = e.response.data;
+            //logger2.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
             //console.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
             //}
+            if (e.response) {
+                json.code = e.response.status;
+                json.data = e.response.data;
+                logger2.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+            } else throw e;
         });
 
     return json;

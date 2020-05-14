@@ -70,8 +70,9 @@ class Logger {
      * @returns 可以或不可以
      * @memberof Logger
      */
-    canAdminSign() {
+    canAdminSign(u) {
         if (this.adminSigned) return false;
+        this.hsaSign.push(u); //给管理员通知已自动签到过了
         this.adminSigned = true;
         return true;
     }
@@ -207,7 +208,7 @@ class Logger {
             return true;
         }
         if (limit == 0) { return true; } //不限制搜图数量
-        if (!this.searchCount[u][key]) this.searchCount[u][key] = 0;
+        if (!this.searchCount[u][key]) { this.searchCount[u][key] = 0 };
         return this.searchCount[u][key];
         //console.log(this.searchCount[u][key]);
         //if (this.searchCount[u][key] < limit) return true;
@@ -235,7 +236,7 @@ class Logger {
                 setuLog.count++;
                 break;
             default:
-                if (!this.searchCount[u][key]) this.searchCount[u][key] = 0;
+                if (!this.searchCount[u][key]) { this.searchCount[u][key] = 0; }
                 this.searchCount[u][key]++;
                 break;
         }

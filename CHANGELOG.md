@@ -2,6 +2,55 @@
 
 ## 2020
 
+### 5-10 v2.12.6
+
+- 修复一个 bug
+
+### 5-10 v2.12.5
+
+- 修复方舟公招数据更新问题
+
+### 5-05 v2.12.4
+
+- 增加私聊回复群聊中搜图结果的功能 ([#60](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/60))
+- 配置项变更
+  - A `picfinder.pmSearchResult`
+
+### 5-01 v2.12.3
+
+- 反哔哩哔哩小程序不支持番剧链接，将尽可能忽略番剧链接 ([#59](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/59))
+
+### 4-29 v2.12.2
+
+- 更新方舟公招数据来源
+
+### 4-29 v2.12.1
+
+- 修正 debug 逻辑 ([#58](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/58))
+
+### 4-27 v2.12.0
+
+- 增加“反哔哩哔哩小程序”功能，鼓励发链接，发链接时会自动获取视频信息并发送，详情看 wiki 配置说明及附加功能
+- 配置项变更
+  - A `picfinder.antiBiliMiniApp`
+
+### 4-24 v2.11.14
+
+- 更改公开招募计算器触发词，不再需要`--akhr`，改为包含`akhr`或`公招`一词即可
+
+### 4-11 v2.11.13
+
+- 修复 danbooru 获取原图来源问题
+
+### 3-18 v2.11.12
+
+- 修复 whatanime 错误 ([#54](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/54))
+- 改进错误输出
+
+### 3-18 v2.11.11
+
+- 修复反和谐生成图片过大问题 ([#53](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/53))
+
 ### 3-17 v2.11.10
 
 - 修复定时提醒功能判断分钟级间隔有误的问题

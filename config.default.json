@@ -21,6 +21,7 @@
         "ascii2dsuotucishu": 100,
         "searchLimit": 30,
         "searchModeTimeout": 60,
+        "pmSearchResult": false,
         "proxy": "",
         "repeat": {
             "enable": false,
@@ -95,6 +96,10 @@
             "enable": false,
             "onlyPM": false,
             "onlyAdmin": false
+        },
+        "antiBiliMiniApp": {
+            "despise": true,
+            "getVideoInfo": true
         }
     },
     "mysql": {

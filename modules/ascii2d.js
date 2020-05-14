@@ -4,6 +4,7 @@ import CQ from './CQcode';
 import config from './config';
 import logger2 from './logger2';
 import pixivShorten from './urlShorten/pixiv';
+//import logError from './logError';
 
 const hosts = config.ascii2dHost;
 let hostsI = 0;

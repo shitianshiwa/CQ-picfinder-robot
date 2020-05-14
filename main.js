@@ -20,6 +20,8 @@ import schedule from 'node-schedule';
 import node_localStorage2 from 'node-localstorage';
 import dayjs from 'dayjs';
 import broadcast from './modules/broadcast';
+import path from 'path';
+import antiBiliMiniApp from './modules/plugin/antiBiliMiniApp';
 
 
 //常量
@@ -31,6 +33,11 @@ const rand = RandomSeed.create();
 const searchModeOnReg = new RegExp(setting.regs.searchModeOn);
 const searchModeOffReg = new RegExp(setting.regs.searchModeOff);
 const signReg = new RegExp(setting.regs.sign);
+const huluezifu = [];
+const bangzhuzhiling1 = `群聊需@机器人并发图片或者输入"搜索acg"，而私聊直接发图片即可(需要图片识文功能请输入'ocr'查看说明)(搜图机器人有三个基本命令(QQ群也不用AT)：--help, --about, --version)。搜图次数限制为每日每位用户25次(管理员例外)，一次可以搜多张图片\n---\n在浏览器上运行的调用多引擎进行搜图的脚本 https://github.com/ccloli/Search-By-Image/ （支持浏览器内选图搜索，也支持上传本地图片进行搜索，综合搜图能力比QQ群机器人强一点）。需要浏览器装上脚本管理器扩展(例如tampermonkey等)，浏览器可选谷歌，yandex(手机版也支持扩展)，火狐(手机版也支持扩展)\n参考链接：【教程】还在当求出处的伸手党吗？不如过来学学如何反向搜图（可能少了一些楼层） https://tieba.baidu.com/p/5935336183\nhttps://trace.moe/ 一个查找动画截图的网站\n以下三个都是用来以图搜图的网站。可以搜寻画师或原图等。需要较高的完整度才容易搜得到，一般是用于低分辨率的图找原图或者是找画师id比较有用，对于打码，剪裁过的图比较没辙\nhttps://saucenao.com/ 也可以搜动画截图\nhttps://ascii2d.net/ 二次元画像。这个识图很容易出奇怪的图片(容易见R18)，支持查找推特和pixiv上的图片\nhttps://iqdb.org/ 搜图网站集合网站\nhttps://www.tineye.com/ tineye作为老牌以图搜图的网站，具有极高的精确度，但得到的结果较少，比较适用于寻找更高分辨率图片。可能需要代理才能浏览\n搜索引擎的搜图\n俄罗斯的yandex https://yandex.ru/images/search\n谷歌(要代理) https://www.google.com/imghp\n微软的必应 https://cn.bing.com/visualsearch\n360搜索 https://image.so.com/ 360识图 http://st.so.com/\n百度 http://image.baidu.com/\n搜狗 https://pic.sogou.com/\n[CQ:image,file=xiaoxi/13.jpg]`;
+const bangzhuzhiling2 = `群聊需@机器人发送图片并加上参数才行，私聊仅需加上参数。示例：指定某个语言"图片 --ocr --L=jp" 或者 使用默认语言(日语)"图片 --ocr"\n作者的使用说明：https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#ocr-%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB \n使用的ocr：https://ocr.space/ (国内可能无法访问该服务)[CQ:image,file=xiaoxi/13.jpg]`;
+const mingling1 = ['--url', '--a2d', '--pixiv', '--danbooru', '--book', '--anime', '--purge', '--help', '--about', '--version'];
+const mingling2 = ['--ocr(默认日语)', '--ocr --L=zh(简体中文)|zht(繁体中文)|jp(日文)|en(英文)|ko(韩语)|fr(法语)|ge(德语)|ru(俄语),需要根据图片内的文字选择一种语言,不选就默认日语'];
 
 //初始化
 let sqlEnable = false;
@@ -41,7 +48,7 @@ if (config.mysql.enable)
         console.error(`${getTime()} [error] SQL`);
         console.error(e);
     });
-if (setting.akhr.enable) Akhr.init();
+if (setting.akhr.enable) Akhr.init().catch(console.error);
 if (setting.reminder.enable) rmdInit(replyMsg);
 
 const bot = new CQWebsocket(config); //直接传配置文件进去
@@ -130,7 +137,13 @@ bot.on('message.private', (e, context) => {
     }
 
     //明日方舟
-    if (args['update-akhr']) Akhr.updateData().then(() => replyMsg(context, '数据已更新'));
+    if (args['update-akhr'])
+        Akhr.updateData()
+        .then(() => replyMsg(context, '方舟公招数据已更新'))
+        .catch(e => {
+            console.error(e);
+            replyMsg(context, '方舟公招数据更新失败，请查看错误日志');
+        });
 
     //停止程序（利用pm2重启）
     if (args.shutdown) {
@@ -183,9 +196,12 @@ bot.connect();
 //自动帮自己签到（诶嘿
 //以及每日需要更新的一些东西
 setInterval(() => {
-    if (bot.isReady() && logger.canAdminSign()) {
+    //logger2.info("管理员签到1");
+    if (bot.isReady() && logger.canAdminSign()) { //
+        //logger2.info("管理员签到2");
         setTimeout(() => {
-            if (setting.admin > 0) {
+            if (setting.admin > 0 && logger.canSign(setting.admin) == true) {
+                //logger2.info("管理员签到3");
                 bot('send_like', {
                     user_id: setting.admin,
                     times: 10,
@@ -230,18 +246,26 @@ function commonHandle(e, context) {
     if (setting.reminder.enable) {
         if (rmdHandler(context)) return true;
     }
-
+    // 反哔哩哔哩小程序
+    antiBiliMiniApp(context, replyMsg);
     return false;
 }
 
 //私聊以及群组@的处理
+var quanjuyanshi = false; //私聊全局延时10秒限制
+
 function privateAndAtMsg(e, context) {
-    if (commonHandle(e, context)) return;
+    if (commonHandle(e, context)) {
+        e.stopPropagation();
+        return;
+    }
     if (context.message == '。搜图') {
+        e.stopPropagation();
         returnmsg(context, 0);
         return;
     }
     if (context.message == 'ocr' || context.message == 'OCR') {
+        e.stopPropagation();
         returnmsg(context, 1);
         return;
     }
@@ -249,21 +273,20 @@ function privateAndAtMsg(e, context) {
         //搜图
         e.stopPropagation();
         searchImg(context);
-    } else if (signReg.exec(context.message)) {
-        //签到
-        e.stopPropagation();
-        if (logger.canSign(context.user_id)) {
-            bot('send_like', {
-                user_id: context.user_id,
-                times: 10,
-            });
-            return setting.replys.sign;
-        } else return setting.replys.signed;
+        /*} else if (signReg.exec(context.message)) {
+            //签到
+            e.stopPropagation();
+            if (logger.canSign(context.user_id)) {
+                bot('send_like', {
+                    user_id: context.user_id,
+                    times: 10,
+                });
+                return setting.replys.sign;
+            } else return setting.replys.signed;*/
     } else if (context.message.search('--') !== -1) {
         return;
     } else if (!context.group_id && !context.discuss_id) {
         const db = snDB[context.message];
-        let s = [''];
         if (db) {
             logger.smSwitch(0, context.user_id, true);
             logger.smSetDB(0, context.user_id, db);
@@ -272,14 +295,22 @@ function privateAndAtMsg(e, context) {
             if (context.message_type == 'private') {
                 let ss = context.message;
                 let has = false;
-                for (let i = 0; i < s.length; i++) {
-                    if (ss == s[i]) {
+                for (let i = 0; i < huluezifu.length; i++) {
+                    if (ss == huluezifu[i]) {
                         has = true;
                         break;
                     }
                 }
                 if (has == false) {
-                    return setting.replys.default;
+                    e.stopPropagation();
+                    if (quanjuyanshi == false) {
+                        quanjuyanshi = true;
+                        let t = setTimeout(() => {
+                            clearTimeout(t);
+                            quanjuyanshi = false
+                        }, 10000);
+                        return setting.replys.default;
+                    }
                 }
             }
         }
@@ -295,7 +326,15 @@ function privateAndAtMsg(e, context) {
                 }
             }
             if (has == false) {
-                return setting.replys.default;
+                e.stopPropagation();
+                if (quanjuyanshi == false) {
+                    quanjuyanshi = true;
+                    let t = setTimeout(() => {
+                        clearTimeout(t);
+                        quanjuyanshi = false
+                    }, 10000);
+                    return setting.replys.default;
+                }
             }
         }
     }
@@ -306,21 +345,61 @@ function debugRrivateAndAtMsg(e, context) {
     if (context.user_id != setting.admin) {
         e.stopPropagation();
         return setting.replys.debug;
-    } else {
-        privateAndAtMsg(e, context);
     }
+    return privateAndAtMsg(e, context);
 }
 
+function debugGroupMsg(e, context) {
+    if (context.user_id != setting.admin) e.stopPropagation();
+    else return groupMsg(e, context);
+}
+
+
 //群组消息处理
+var qiandaoxianzhi = false;
+var qiandaotupianjishu = 0;
+
 function groupMsg(e, context) {
-    if (commonHandle(e, context)) return;
+    if (commonHandle(e, context)) {
+        e.stopPropagation();
+        return;
+    }
     if (context.message == '。搜图') {
+        e.stopPropagation();
         returnmsg(context, 0);
         return;
     }
     if (context.message == 'ocr' || context.message == 'OCR') {
+        e.stopPropagation();
         returnmsg(context, 1);
         return;
+    }
+    if (signReg.exec(context.message)) {
+        //签到
+        e.stopPropagation();
+        if (qiandaoxianzhi == false) {
+            qiandaoxianzhi = true;
+            let t = setTimeout(() => {
+                clearInterval(t);
+                qiandaoxianzhi = false;
+            }, 5000);
+            /*let pictemp = path.join(__dirname, "./tuku/" + qiandaotupianjishu.toString() + ".jpg");
+            if (qiandaotupianjishu < 260) {
+                qiandaotupianjishu = qiandaotupianjishu + 1;
+
+            } else {
+                qiandaotupianjishu = 0;
+            }*/
+            if (logger.canSign(context.user_id)) {
+                bot('send_like', {
+                    user_id: context.user_id,
+                    times: 10,
+                });
+                return `[CQ:at,qq=${context.user_id}]` + setting.replys.sign /*+ `\n[CQ:image,file=file:///${pictemp}]`*/ ;
+            } else {
+                return `[CQ:at,qq=${context.user_id}]` + setting.replys.signed /*+ `\n[CQ:image,file=file:///${pictemp}]`*/ ;
+            }
+        }
     }
     //进入或退出搜图模式
     const { group_id, user_id } = context;
@@ -392,29 +471,25 @@ function returnmsg(context, xuanze) {
     //console.log(context);
     switch (xuanze) {
         case 0:
-            let temp = `群聊需@机器人并发图片，而私聊直接发图片即可(需要图片识文功能请输入'ocr'查看说明)(搜图机器人有三个基本命令(QQ群也不用AT)：--help, --about, --version)。搜图次数限制为每日每位用户30次(管理员例外)，一次可以搜多张图片\n---\n在浏览器上运行的调用多引擎进行搜图的脚本 https://github.com/ccloli/Search-By-Image/ （支持浏览器内选图搜索，也支持上传本地图片进行搜索，综合搜图能力比QQ群机器人强一点）。需要浏览器装上脚本管理器扩展(例如tampermonkey等)，浏览器可选谷歌，yandex(手机版也支持扩展)，火狐(手机版也支持扩展)\n参考链接：【教程】还在当求出处的伸手党吗？不如过来学学如何反向搜图（可能少了一些楼层） https://tieba.baidu.com/p/5935336183\nhttps://trace.moe/ 一个查找动画截图的网站\n以下三个都是用来以图搜图的网站。可以搜寻画师或原图等。需要较高的完整度才容易搜得到，一般是用于低分辨率的图找原图或者是找画师id比较有用，对于打码，剪裁过的图比较没辙\nhttps://saucenao.com/ 也可以搜动画截图\nhttps://ascii2d.net/ 二次元画像。这个识图很容易出奇怪的图片(容易见R18)，支持查找推特和pixiv上的图片\nhttps://iqdb.org/ 搜图网站集合网站\nhttps://www.tineye.com/ tineye作为老牌以图搜图的网站，具有极高的精确度，但得到的结果较少，比较适用于寻找更高分辨率图片。可能需要代理才能浏览\n搜索引擎的搜图\n俄罗斯的yandex https://yandex.ru/images/search\n谷歌(要代理) https://www.google.com/imghp\n微软的必应 https://cn.bing.com/visualsearch\n360搜索 https://image.so.com/ 360识图 http://st.so.com/\n百度 http://image.baidu.com/\n搜狗 https://pic.sogou.com/\n[CQ:image,file=xiaoxi/13.jpg]`;
             if (context.message_type == 'group') {
-                replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + temp);
+                replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + bangzhuzhiling1);
             } else if (context.message_type == 'private') {
-                let s = ['--url', '--a2d', '--pixiv', '--danbooru', '--book', '--anime', '--purge', '--help', '--about', '--version'];
-                replyMsg(context, temp);
-                for (let i = 0; i < s.length; i++) {
-                    replyMsg(context, s[i]);
+                replyMsg(context, bangzhuzhiling1);
+                for (let i = 0; i < mingling1.length; i++) {
+                    replyMsg(context, mingling1[i]);
                 }
             }
             break;
         case 1:
-            let temp2 = `群聊需@机器人发送图片并加上参数才行，私聊仅需加上参数。示例：指定某个语言"图片 --ocr --L=jp" 或者 使用默认语言(日语)"图片 --ocr"\n作者的使用说明：https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#ocr-%E6%96%87%E5%AD%97%E8%AF%86%E5%88%AB \n使用的ocr：https://ocr.space/ (国内可能无法访问该服务)[CQ:image,file=xiaoxi/13.jpg]`;
-            let s = ['--ocr(默认日语)', '--ocr --L=zh(简体中文)|zht(繁体中文)|jp(日文)|en(英文)|ko(韩语)|fr(法语)|ge(德语)|ru(俄语),需要根据图片内的文字选择一种语言,不选就默认日语'];
             if (context.message_type == 'group') {
-                replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + temp2);
-                for (let i = 0; i < s.length; i++) {
-                    replyMsg(context, s[i]);
+                replyMsg(context, `[CQ:at,qq=${context.user_id}]\n` + bangzhuzhiling2);
+                for (let i = 0; i < mingling2.length; i++) {
+                    replyMsg(context, mingling2[i]);
                 }
             } else if (context.message_type == 'private') {
-                replyMsg(context, temp2);
-                for (let i = 0; i < s.length; i++) {
-                    replyMsg(context, s[i]);
+                replyMsg(context, bangzhuzhiling2);
+                for (let i = 0; i < mingling2.length; i++) {
+                    replyMsg(context, mingling2[i]);
                 }
             }
             break;
@@ -448,7 +523,7 @@ async function searchImg(context, customDB = -1) {
     }
 
     //明日方舟
-    if (args.akhr) {
+    if (hasWord('akhr') || hasWord('公招')) {
         doAkhr(context);
         return;
     }
@@ -477,10 +552,13 @@ async function searchImg(context, customDB = -1) {
     var pic_m = false;
     var jishu = 0;
     var tupianshu = imgs.length;
+    console.log(tupianshu);
     var t = setInterval(async() => {
         if (tupianshu > 0) {
             let img = imgs[imgs.length - tupianshu];
+            //console.log(tupianshu);
             tupianshu--;
+            //console.log(tupianshu);
             if (args['url']) replyMsg(context, img.url.replace(/\/[0-9]+\//, '//').replace(/\?.*$/, ''));
             else {
                 //获取缓存
@@ -544,7 +622,8 @@ async function searchImg(context, customDB = -1) {
                         //replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
                         /*for (const cmsg of cache) {
                             //console.log(msg);
-                            replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
+                            //replyMsg(context, `&#91;缓存&#93; ${cmsg}`);
+                            replySearchMsgs(context, `&#91;缓存&#93; ${cmsg}`);
                         }*/
                     }
                 }
@@ -562,7 +641,7 @@ async function searchImg(context, customDB = -1) {
                     }
 
                     const needCacheMsgs = [];
-                    let success = true;
+                    let success = false;
                     let useSaucenao = false;
                     let useAscii2d = args.a2d;
                     let useWhatAnime = args.anime;
@@ -570,13 +649,14 @@ async function searchImg(context, customDB = -1) {
                     //saucenao
                     if (!useAscii2d) {
                         useSaucenao = true;
-                        const saRet = await saucenao(img.url, db, args.debug);
-                        if (!saRet.success) success = false;
-                        if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess /*saucenao出错处理*/ )) { useAscii2d = true; }
-                        if (saRet.excess) { useWhatAnime = true; } //saucenao出错处理
+                        const saRet = await saucenao(img.url, db, args.debug || setting.debug);
+                        if (saRet.success) success = true;
+                        if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess /*saRet.excess saucenao出错处理*/ ) || args.purge) { useAscii2d = true; }
+                        if (saRet.excess) { useWhatAnime = true; } //saRet.excess saucenao出错处理
                         if (!saRet.lowAcc && saRet.msg.indexOf('anidb.net') !== -1) { useWhatAnime = true; }
-                        if (db == snDB.anime) { useWhatAnime = true; }
+                        if (db == snDB.anime || args.purge) { useWhatAnime = true; }
                         if (saRet.msg.length > 0) needCacheMsgs.push(saRet.msg);
+                        //replySearchMsgs(context, saRet.msg, saRet.warnMsg);
                         if (context.message_type == 'group') {
                             if (pic_m == false) { //只有在QQ群使用才会发送这条消息
                                 replyMsg(context, `[CQ:at,qq=${context.user_id}]\n因为搜任何图片返回的结果都有风险，所以必须转发到私聊`);
@@ -636,12 +716,14 @@ async function searchImg(context, customDB = -1) {
                                     user_id: context.user_id,
                                     message: "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, //ascii2d因未知原因搜索失败
                                 });
+                                //replySearchMsgs(context, `ascii2d 搜索失败${errMsg}`);
                                 logger2.error(`${getTime()} [error] Ascii2d`);
                                 logger2.error(asErr);
                                 //console.error(`${getTime()} [error] Ascii2d`);
                                 //console.error(asErr);
                             } else {
                                 //改为私聊
+                                success = true;
                                 if (useSaucenao == false) {
                                     if (context.message_type == 'group') {
                                         if (pic_m == false) { //只有在QQ群使用才会发送这条消息
@@ -668,6 +750,7 @@ async function searchImg(context, customDB = -1) {
                                         message: "今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
                                     }).catch(err => { logger2.error(new Date().toString() + ",ascii2d," + err) });
                                 }
+                                //replySearchMsgs(context, color, bovw);
                                 needCacheMsgs.push(color);
                                 needCacheMsgs.push(bovw);
                                 /*if (context.message_type == 'group') {
@@ -696,8 +779,8 @@ async function searchImg(context, customDB = -1) {
 
                     //搜番
                     if (useWhatAnime) {
-                        const waRet = await whatanime(img.url, args.debug);
-                        if (!waRet.success) success = false; //如果搜番有误也视作不成功
+                        const waRet = await whatanime(img.url, args.debug || setting.debug);
+                        if (waRet.success) success = true; //搜番成功
                         //改为私聊
                         if (useSaucenao == false) {
                             jishu++;
@@ -714,7 +797,7 @@ async function searchImg(context, customDB = -1) {
                         //replyMsg(context, waRet.msg);
                         if (waRet.msg.length > 0) needCacheMsgs.push(waRet.msg);
                     }
-                    if (success) { logger.doneSearch(context.user_id); }
+                    if (success == true) { logger.doneSearch(context.user_id); }
                     //将需要缓存的信息写入数据库
                     if (sqlEnable && success) {
                         const sql = new PFSql();
@@ -725,15 +808,19 @@ async function searchImg(context, customDB = -1) {
                 }
             }
         } else {
-            let searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
-            bot('send_private_msg', {
-                user_id: context.user_id,
-                message: "今日搜索次数:" + searchLimit.toString(),
-            }).catch(err => { logger2.error(new Date().toString() + ",今日搜索次数," + err) });
-            //replyMsg(context, "今日搜索次数:" + searchLimit.toString());
             clearInterval(t);
+            let t = setTimeout(() => {
+                let searchLimit = logger.canSearch(context.user_id, setting.searchLimit);
+                bot('send_private_msg', {
+                    user_id: context.user_id,
+                    message: "今日搜索次数:" + searchLimit.toString(),
+                }).catch(err => { logger2.error(new Date().toString() + ",今日搜索次数," + err) });
+            }, 1000);
+            //replyMsg(context, "今日搜索次数:" + searchLimit.toString());
         }
     }, 8000);
+    /*for (const img of imgs) {
+    }*/
 }
 
 /*
@@ -776,7 +863,7 @@ function doOCR(context) {
             ocrspace.setItem('day', temp);
         }
         //console.log(t.getMonth());
-        let s1 = t.getFullYear() + '-' + (t.getMonth() + 1) + '-mouth';
+        let s1 = t.getFullYear() + '-' + (t.getMonth() + 1) + '-mouth'; //不用就不创建记录文件
         //console.log(s1);
         if (ocrspace.getItem(s1) == null) {
             ocrspace.setItem(s1, "1");
@@ -828,6 +915,11 @@ function doOCR(context) {
 
 function doAkhr(context) {
     if (setting.akhr.enable) {
+        if (!Akhr.isDataReady()) {
+            replyMsg(context, '数据尚未准备完成，请等待一会，或查看日志以检查数据拉取是否出错');
+            return;
+        }
+
         const msg = context.message;
         const imgs = getImgs(msg);
 
@@ -844,9 +936,8 @@ function doAkhr(context) {
         };
 
         for (const img of imgs) {
-            ocr[setting.akhr.ocr](img.url, 'chs')
-                .then(handleWords)
-                .catch(handleError);
+            ocr[setting.akhr.ocr](img.url, 'chs').then(handleWords).catch(handleError);
+
         }
     } else {
         replyMsg(context, '该功能未开启');
@@ -891,23 +982,57 @@ function hasImage(msg) {
  * @param {boolean} at 是否at发送者
  */
 function replyMsg(context, msg, at = false) {
-    if (typeof msg != 'string' || msg.length == 0) return;
-    if (context.group_id) {
-        return bot('send_group_msg', {
-            group_id: context.group_id,
-            message: at ? CQ.at(context.user_id) + msg : msg,
-        });
-    } else if (context.discuss_id) {
-        return bot('send_discuss_msg', {
-            discuss_id: context.discuss_id,
-            message: at ? CQ.at(context.user_id) + msg : msg,
-        });
-    } else if (context.user_id) {
-        return bot('send_private_msg', {
-            user_id: context.user_id,
-            message: msg,
-        });
+    if (typeof msg !== 'string' || msg.length === 0) return;
+    switch (context.message_type) {
+        case 'private':
+            return bot('send_private_msg', {
+                user_id: context.user_id,
+                message: msg,
+            });
+        case 'group':
+            return bot('send_group_msg', {
+                group_id: context.group_id,
+                message: at ? CQ.at(context.user_id) + msg : msg,
+            });
+        case 'discuss':
+            return bot('send_discuss_msg', {
+                discuss_id: context.discuss_id,
+                message: at ? CQ.at(context.user_id) + msg : msg,
+            });
     }
+}
+
+/**
+ * 回复搜图消息
+ *
+ * @param {object} context 消息对象
+ * @param {Array<string>} msgs 回复内容
+ */
+function replySearchMsgs(context, ...msgs) {
+    msgs = msgs.filter(msg => msg && typeof msg === 'string');
+    if (msgs.length === 0) return;
+    let promises = [];
+    // 是否私聊回复
+    if (setting.pmSearchResult) {
+        switch (context.message_type) {
+            case 'group':
+            case 'discuss':
+                if (!context.pmTipSended) {
+                    context.pmTipSended = true;
+                    replyMsg(context, '搜图结果将私聊发送！', true);
+                }
+                break;
+        }
+        promises = msgs.map(msg =>
+            bot('send_private_msg', {
+                user_id: context.user_id,
+                message: msg,
+            })
+        );
+    } else {
+        promises = msgs.map(msg => replyMsg(context, msg));
+    }
+    return Promise.all(promises);
 }
 
 /**

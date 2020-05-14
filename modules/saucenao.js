@@ -7,6 +7,7 @@ import shorten from './urlShorten/is.gd';
 import { parse } from 'url';
 import logger2 from './logger2';
 import pixivShorten from './urlShorten/pixiv';
+//import logError from './logError';
 
 const hosts = config.saucenaoHost;
 let hostsI = 0;
@@ -126,10 +127,10 @@ async function doSearch(imgURL, db, debug = false) {
                         return false;
                     });
                     //有本子搜索结果的话
-                    if (book) {
+                    if (book && config.picfinder.saucenaoHideImgWhenLowAcc == false) {
                         thumbnail = `https://t.nhentai.net/galleries/${book.media_id}/cover.${exts[book.images.thumbnail.t]}`;
                         url = `https://nhentai.net/g/${book.id}/`;
-                    } else {
+                    } else if (config.picfinder.saucenaoHideImgWhenLowAcc == false) {
                         success = false;
                         warnMsg += CQ.escape('\n没有在nhentai找到对应的本子_(:3」∠)_\n或者可能是此query因bug而无法在nhentai中获得搜索结果\n');
                     }

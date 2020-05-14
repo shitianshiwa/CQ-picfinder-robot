@@ -515,6 +515,7 @@ ru -> rus(俄语)
  */
 async function searchImg(context, customDB = -1) {
     const args = parseArgs(context.message);
+    const hasWord = word => context.message.indexOf(word) !== -1;
 
     //OCR
     if (args.ocr) {

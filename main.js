@@ -553,7 +553,7 @@ async function searchImg(context, customDB = -1) {
     var pic_m = false;
     var jishu = 0;
     var tupianshu = imgs.length;
-    console.log(tupianshu);
+    //console.log("本次搜索图片数：" + tupianshu);
     var t = setInterval(async() => {
         if (tupianshu > 0) {
             let img = imgs[imgs.length - tupianshu];

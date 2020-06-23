@@ -22,6 +22,9 @@
 
 重构为更加模块化的一个机器人框架，以支持自定义插件
 
+# 其它以CQ-picfinder-robot为基础的魔改版
+- https://github.com/Ninzore/Wecab
+
 # 安装模块失败的解决方法
 * https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/42#issuecomment-572051285
 ## 1

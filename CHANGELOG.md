@@ -2,6 +2,30 @@
 
 ## 2020
 
+### 07-06 v2.13.3
+
+- 增加 setu API 超额时的自定义回复
+- 配置项变更
+  - A `picfinder.replys.setuQuotaExceeded`
+
+### 07-02 v2.13.2
+
+- 修复定时提醒的逻辑错误
+
+### 06-27 v2.13.1
+
+- 修复搜图缓存没有正常运作的问题
+
+### 06-27 v2.13.0
+
+- 修复提醒功能失效问题 ([#75](../../issues/75))
+- 弃用 mysql，仅使用 sqlite，配置项转移
+- 配置项变更
+  - D `mysql`
+  - A `picfinder.cache`
+  - `mysql.enable` -> `picfinder.cache.enable`
+  - `mysql.expire` -> `picfinder.cache.expire`
+
 ### 5-10 v2.12.6
 
 - 修复一个 bug

@@ -2,6 +2,56 @@
 
 ## 2020
 
+### 08-07 v2.14.2
+
+- 因 go-cqhttp 尚未支持转义 [Mrs4s/go-cqhttp#9](https://github.com/Mrs4s/go-cqhttp/issues/9)，因此暂时禁用了消息的转义，待其修复后需要更新 go-cqhttp 和本项目
+
+### 08-07 v2.14.1
+
+- 之前忘记删除签到（点赞）相关功能代码了
+
+### 08-05 v2.14.0 **R.I.P. CoolQ**
+
+- 目前决定专注于适配 [go-cqhttp](https://github.com/Mrs4s/go-cqhttp)，其余方案暂不考虑
+  - mirai-native + cq-http 经测试仍然有很多问题且部署麻烦，因此放弃
+  - 如果发现某些功能运作不正常或与原先表现不一致，可提 issue 向我反馈
+- 请参考 wiki 进行迁移或部署，另外，配置文件结构有些许变动（主要是 node-cq-websocket 部分），请注意修改
+- mirai 不支持点赞，自动点赞功能及相关配置项已被删除
+
+### 07-30 v2.13.5
+
+- 自定义每日资料卡点赞名单
+- 配置项变更
+  - A `picfinder.dailyLike`
+
+### 07-24 v2.13.4
+
+- 反 Bilibili 小程序功能在 3 分钟内将不会重复解析同一视频链接，以防刷屏
+
+### 07-06 v2.13.3
+
+- 增加 setu API 超额时的自定义回复
+- 配置项变更
+  - A `picfinder.replys.setuQuotaExceeded`
+
+### 07-02 v2.13.2
+
+- 修复定时提醒的逻辑错误
+
+### 06-27 v2.13.1
+
+- 修复搜图缓存没有正常运作的问题
+
+### 06-27 v2.13.0
+
+- 修复提醒功能失效问题 ([#75](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/75))
+- 弃用 mysql，仅使用 sqlite，配置项转移
+- 配置项变更
+  - D `mysql`
+  - A `picfinder.cache`
+  - `mysql.enable` -> `picfinder.cache.enable`
+  - `mysql.expire` -> `picfinder.cache.expire`
+
 ### 5-10 v2.12.6
 
 - 修复一个 bug
@@ -12,13 +62,13 @@
 
 ### 5-05 v2.12.4
 
-- 增加私聊回复群聊中搜图结果的功能 ([#60](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/60))
+- 增加私聊回复群聊中搜图结果的功能 ([#60](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/60))
 - 配置项变更
   - A `picfinder.pmSearchResult`
 
 ### 5-01 v2.12.3
 
-- 反哔哩哔哩小程序不支持番剧链接，将尽可能忽略番剧链接 ([#59](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/59))
+- 反哔哩哔哩小程序不支持番剧链接，将尽可能忽略番剧链接 ([#59](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/59))
 
 ### 4-29 v2.12.2
 
@@ -26,7 +76,7 @@
 
 ### 4-29 v2.12.1
 
-- 修正 debug 逻辑 ([#58](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/58))
+- 修正 debug 逻辑 ([#58](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/58))
 
 ### 4-27 v2.12.0
 
@@ -44,12 +94,12 @@
 
 ### 3-18 v2.11.12
 
-- 修复 whatanime 错误 ([#54](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/54))
+- 修复 whatanime 错误 ([#54](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/54))
 - 改进错误输出
 
 ### 3-18 v2.11.11
 
-- 修复反和谐生成图片过大问题 ([#53](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/53))
+- 修复反和谐生成图片过大问题 ([#53](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/53))
 
 ### 3-17 v2.11.10
 
@@ -57,7 +107,7 @@
 
 ### 3-14 v2.11.9
 
-- 更换 akhr 数据地址 ([#49](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/49))
+- 更换 akhr 数据地址 ([#49](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/49))
 - 增加 whatanime 的 token 设置
 - 配置项变更
   - A `whatanimeToken`
@@ -70,7 +120,7 @@
 
 ### 2-21 v2.11.7
 
-- 修复通用处理完成后未停止事件传播的问题 ([#36](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/36))
+- 修复通用处理完成后未停止事件传播的问题 ([#36](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/36))
 
 ### 2-18 v2.11.6
 
@@ -103,7 +153,7 @@
 
 ### 1-15 v2.11.1
 
-- 因酷Q不支持本地发送大于 4M 的图片，因此开启反和谐后如果没有开启 size1200 并且原图大小超过 3M，将会自动使用 size1200 ([#40](https://github.com/Tsuk1ko/CQ-picfinder-robot/issues/40))
+- 因酷Q不支持本地发送大于 4M 的图片，因此开启反和谐后如果没有开启 size1200 并且原图大小超过 3M，将会自动使用 size1200 ([#40](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/40))
 
 ## 2019
 
@@ -114,7 +164,7 @@
 - saucenao, whatanime, ascii2d 的自定义域名支持带上协议，即支持以下写法
   - `example.com`：将会使用`http://example.com`；特殊地，上面三者的官方域名将会使用 https
   - `http://example.com`或`https://example.com`
-- 支持[群发消息](https://github.com/Tsuk1ko/CQ-picfinder-robot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E7%BE%A4%E5%8F%91%E6%B6%88%E6%81%AF)
+- 支持[群发消息](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E7%BE%A4%E5%8F%91%E6%B6%88%E6%81%AF)
 - 配置项变更
   - A `ascii2dHost`
 
@@ -154,7 +204,7 @@
 ### 10-15 v2.9.1
 
 - 增加 pm2 配置文件，目前可直接使用`pm2 start|stop|restart|logs`等命令控制
-- 增加按关键词发 setu 以及 r18 setu 功能，若从旧版本升级，请参考 Wiki 中 setu 功能说明进行设置
+- 增加按关键词发 setu 以及 r18 setu 功能，若从旧版本升级，请参考 wiki 中 setu 功能说明进行设置
 - 配置项变更（重要）
   - A `picfinder.setu.r18OnlyInWhite`
   - M `picfinder.regs.setu`
@@ -186,7 +236,7 @@
 
 ### 07-07 v2.5.4
 
-- 【腾讯OCR】支持轮换 API 使用以变相提升免费额度
+- 【腾讯 OCR】支持轮换 API 使用以变相提升免费额度
 - 对【明日方舟公开招募计算器】的 OCR 增加了纠错
 - 增加配置项
   - `picfinder.searchModeTimeout`
@@ -194,12 +244,12 @@
 
 ### 07-02 v2.5.3
 
-- 增加了【腾讯OCR】的支持
+- 增加了【腾讯 OCR】的支持
 - 增加了`picfinder.setu.pximgServerPort`和`picfinder.setu.usePximgAddr`设置项，以方便使用 Docker 版酷Q的用户
 
 ### 05-25 v2.5.2
 
-- 增加了【百度OCR】的支持，以提升对明日方舟公开招募词条的识别率和准确率
+- 增加了【百度 OCR】的支持，以提升对明日方舟公开招募词条的识别率和准确率
 - **`ocr`部分的配置格式有改动，请参照新的`config.default.json`进行修改**
 - 对【明日方舟公开招募计算器】进行了许多改进
 
@@ -240,7 +290,7 @@
 ### 08-16 v2.1.0
 
 - （暴力地）修复了当图片标题含有 emoji 时分享不正常的 bug
-- 根据 @fuochai 的建议，将p站链接替换成短链接
+- 根据 @fuochai 的建议，将P站链接替换成短链接
 
 ### 07-16 v2.0.1
 
@@ -248,11 +298,11 @@
 
 ### 06-06
 
-- 修复了某些本子因含有特定符号而无法在nhentai搜索到（实际上nhentai有这本子
+- 修复了某些本子因含有特定符号而无法在 nhentai 搜索到（实际上 nhentai 有这本子
 
 ### 06-05
 
-- 为了减少API的使用次数以及加快搜图速度，增加搜图缓存功能，某张图片（MD5作为凭证）的搜索结果会被缓存指定时间，但可以用`--purge`参数无视缓存强制更新搜图结果
+- 为了减少 API 的使用次数以及加快搜图速度，增加搜图缓存功能，某张图片（MD5 作为凭证）的搜索结果会被缓存指定时间，但可以用`--purge`参数无视缓存强制更新搜图结果
 - 增加搜图次数限制功能
 
 ### 05-30
@@ -288,7 +338,7 @@
 ### 01-22
 
 - 重写搜图结果识别方法与逻辑
-- 修复了当图片不为消息最后一个内容时会导致无法搜图的BUG
+- 修复了当图片不为消息最后一个内容时会导致无法搜图的 bug
 
 ### 01-21
 

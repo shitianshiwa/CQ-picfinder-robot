@@ -1217,27 +1217,27 @@ async function start() {
                     user_id: context.user_id,
                     message: msg,
                 }).then(data => {
-                    logger2.info(new Date().toString() + JSON.stringify(data))
+                    logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'group':
                 return bot('send_group_msg', {
                     group_id: context.group_id,
                     message: at ? CQ.at(context.user_id) + msg : msg,
                 }).then(data => {
-                    logger2.info(new Date().toString() + JSON.stringify(data))
+                    logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'discuss':
                 return bot('send_discuss_msg', {
                     discuss_id: context.discuss_id,
                     message: at ? CQ.at(context.user_id) + msg : msg,
                 }).then(data => {
-                    logger2.info(new Date().toString() + JSON.stringify(data))
+                    logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
         }
     }

@@ -153,7 +153,7 @@ function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
 }
 
-function getVideoInfo(param, msg) {
+function getVideoInfo(param, msg, gid) {
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
     return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`)
         .then(
@@ -194,7 +194,10 @@ function getVideoInfo(param, msg) {
                         },
                     },
                 },
-            }) => `${CQ.img(pic)}
+            }) => {
+                const cacheKeys = [`${gid}-${aid}`, `${gid}-${bvid}`]; //支持分群了？
+                [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+                return `${CQ.img(pic)}
 尺寸: 宽${width}px , 高${height}px
 av${aid}
 标题：${title}
@@ -207,6 +210,7 @@ UP：${name} 空间链接：https://space.bilibili.com/${mid}
 ${humanNum(view)}播放 , ${humanNum(videos)}个分P , ${humanNum(danmaku)}弹幕 , ${humanNum(reply)}评论 , 
 ${humanNum(favorite)}收藏 , ${humanNum(share)}分享 , ${humanNum(coin)}硬币 , ${humanNum(like)}点赞 
 https://www.bilibili.com/video/${bvid}`
+            }
         )
         .catch(e => {
             logError(`${new Date().toLocaleString()} [error] get bilibili video info ${param},${msg}`);
@@ -304,7 +308,7 @@ async function antiBiliMiniApp(context, replyFunc) {
         }
         if (search) title = search[1].replace(/\\"/g, '"');
     }
-    if (setting.getVideoInfo && xiaochengxu == true && msg.indexOf('视频') == -1&& msg.indexOf('CQ:video') == -1) {
+    if (setting.getVideoInfo && xiaochengxu == true && msg.indexOf('视频') == -1 && msg.indexOf('CQ:video') == -1) {
         const param = await getAvBvFromMsg(msg);
         //logger2.info(param);
         if (param) {
@@ -319,7 +323,7 @@ async function antiBiliMiniApp(context, replyFunc) {
                 }
                 [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
-            const reply = await getVideoInfo(param, msg);
+            const reply = await getVideoInfo(param, msg, gid);
             if (reply) {
                 replyFunc(context, reply);
                 return;

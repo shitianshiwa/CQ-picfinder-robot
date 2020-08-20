@@ -4,11 +4,20 @@ import Fse from 'fs-extra';
 import Parser from 'cron-parser';
 import minimist from 'minimist';
 import _ from 'lodash';
+import {
+    setLargeTimeout,
+    clearLargeTimeout
+} from '../utils/largeTimeout';
 
 const setting = config.picfinder.reminder;
 
 const rmdFile = Path.resolve(__dirname, '../../data/rmd.json');
-if (!Fse.existsSync(rmdFile)) Fse.writeJSONSync(rmdFile, { g: {}, d: {}, u: {}, next: 0 });
+if (!Fse.existsSync(rmdFile)) Fse.writeJSONSync(rmdFile, {
+    g: {},
+    d: {},
+    u: {},
+    next: 0
+});
 const rmd = Fse.readJSONSync(rmdFile);
 let timeout = {};
 let replyFunc = (context, msg, at = false) => {};
@@ -25,7 +34,11 @@ function saveRmd() {
 function restoreRmd() {
     _.forEach(_.omit(rmd, 'next'), list => {
         _.forEach(list, rlist => {
-            _.forEach(rlist, ({ msg, time, ctx }, tid) => {
+            _.forEach(rlist, ({
+                msg,
+                time,
+                ctx
+            }, tid) => {
                 const interval = Parser.parseExpression(time);
                 start(tid, interval, ctx, msg);
             });
@@ -48,18 +61,18 @@ function parseArgs(str, enableArray = false) {
 
 function start(tid, interval, ctx, msg) {
     const now = _.now();
-    let next = 0;
-    while (next <= 0) next = interval.next().getTime() - now;
+    let next = -1;
+    while (next < 0) next = interval.next().getTime() - now;
 
-    timeout[tid] = setTimeout(() => {
+    timeout[tid] = setLargeTimeout(() => {
         replyFunc(ctx, msg);
         start(tid, interval, ctx, msg);
-    }, interval.next().getTime() - _.now());
+    }, next);
 }
 
 function stop(tid) {
     if (timeout[tid]) {
-        clearTimeout(timeout[tid]);
+        clearLargeTimeout(timeout[tid]);
         return true;
     } else return false;
 }
@@ -67,28 +80,41 @@ function stop(tid) {
 function addRmd(type, rid, tid, uid, msg, time, ctx) {
     const t = rmd[type];
     if (!t[rid]) t[rid] = {};
-    t[rid][tid] = { uid, msg, time, ctx };
+    t[rid][tid] = {
+        uid,
+        msg,
+        time,
+        ctx
+    };
     saveRmd();
 }
 
 function parseCtx(ctx) {
-    let type = '';
-    let rid = 0;
-    if (ctx.group_id) {
-        type = 'g';
-        rid = ctx.group_id;
-    } else if (ctx.discuss_id) {
-        type = 'd';
-        rid = ctx.discuss_id;
-    } else if (ctx.user_id) {
-        type = 'u';
-        rid = ctx.user_id;
+    switch (ctx.message_type) {
+        case 'private':
+            return {
+                type: 'u',
+                rid: ctx.user_id
+            };
+        case 'group':
+            return {
+                type: 'g',
+                rid: ctx.group_id
+            };
+        case 'discuss':
+            return {
+                type: 'd',
+                rid: ctx.discuss_id
+            };
     }
-    return { type, rid };
+    return {
+        type: '',
+        rid: 0
+    };
 }
 
 function rmdHandler(ctx) {
-    // 限制场景
+    //  限制场景
     if (ctx.user_id != config.picfinder.admin) {
         if (setting.onlyAdmin) {
             return false;
@@ -112,7 +138,10 @@ function rmdHandler(ctx) {
 }
 
 function add(ctx, args) {
-    const { type, rid } = parseCtx(ctx);
+    const {
+        type,
+        rid
+    } = parseCtx(ctx);
 
     if (_.size(rmd[type][rid]) >= 20) {
         replyFunc(ctx, '提醒太多啦，不能再加啦！', true);
@@ -126,11 +155,7 @@ function add(ctx, args) {
 
     if (args._.length > 0) args.rmd += ' ' + args._.join(' ');
 
-    const rctx = {
-        group_id: ctx.group_id,
-        discuss_id: ctx.discuss_id,
-        user_id: ctx.user_id,
-    };
+    const rctx = _.pick(ctx, ['message_type', 'user_id', 'group_id', 'discuss_id']);
     const cron = args.time.replace(/;/g, ' ');
 
     const cronParts = cron.split(' ');
@@ -164,25 +189,36 @@ function add(ctx, args) {
 }
 
 function list(ctx) {
-    const { type, rid } = parseCtx(ctx);
+    const {
+        type,
+        rid
+    } = parseCtx(ctx);
     const list = rmd[type][rid];
     const replys = _.transform(
         list,
-        (arr, { uid, msg, time }, tid) => {
+        (arr, {
+            uid,
+            msg,
+            time
+        }, tid) => {
             let short = msg
                 .replace(/\[CQ:image,[^\]]+\]/g, '[图片]')
                 .replace(/\[CQ:at,[^\]]+\]/g, '[@]')
                 .replace(/\n/g, ' ');
             if (short.length > 10) short = short.substr(0, 10) + '...';
             arr.push([tid, uid, time, short].join(' | '));
-        },
-        [['ID', '创建者', 'crontab', '内容'].join(' | ')]
+        }, [
+            ['ID', '创建者', 'crontab', '内容'].join(' | ')
+        ]
     );
     replyFunc(ctx, replys.join('\n'));
 }
 
 function del(ctx, tid) {
-    const { type, rid } = parseCtx(ctx);
+    const {
+        type,
+        rid
+    } = parseCtx(ctx);
     try {
         const tlist = rmd[type][rid];
         if (!tlist[tid]) throw new Error();
@@ -195,4 +231,7 @@ function del(ctx, tid) {
     }
 }
 
-export { rmdInit, rmdHandler };
+export {
+    rmdInit,
+    rmdHandler
+};

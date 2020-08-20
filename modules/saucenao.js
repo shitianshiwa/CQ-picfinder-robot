@@ -1,10 +1,14 @@
-import {get } from './axiosProxy';
+import {
+    get
+} from './axiosProxy';
 import nhentai from './nhentai';
 import getSource from './getSource';
 import CQ from './CQcode';
 import config from './config';
 import shorten from './urlShorten/is.gd';
-import { parse } from 'url';
+import {
+    parse
+} from 'url';
 import logger2 from './logger2';
 import pixivShorten from './urlShorten/pixiv';
 //import logError from './logError';
@@ -26,7 +30,9 @@ const exts = {
     g: 'gif',
 };
 
-const saucenaoApiKeyAddition = config.saucenaoApiKey ? { api_key: config.saucenaoApiKey } : {};
+const saucenaoApiKeyAddition = config.saucenaoApiKey ? {
+    api_key: config.saucenaoApiKey
+} : {};
 
 /**
  * saucenao搜索
@@ -36,7 +42,7 @@ const saucenaoApiKeyAddition = config.saucenaoApiKey ? { api_key: config.saucena
  * @param {boolean} [debug=false] 是否调试
  * @returns Promise 返回消息、返回提示
  */
-async function doSearch(imgURL, db, debug = false) {
+async function doSearch(imgURL, db, debug = false, whitegroup, whiteqq) {
     const hostIndex = hostsI++ % hosts.length; //决定当前使用的host
     let warnMsg = ''; //返回提示
     let msg = config.picfinder.replys.failed; //返回消息
@@ -50,7 +56,7 @@ async function doSearch(imgURL, db, debug = false) {
 
             //如果是调试模式
             if (debug) {
-                logger2.info(`\n[debug] saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
+                logger2.info(`\n${getTime()},saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
                 logger2.info(JSON.stringify(data));
                 //console.log(`\n[debug] saucenao[${hostIndex}]: ${hosts[hostIndex]}`);
                 //console.log(JSON.stringify(data));
@@ -101,7 +107,9 @@ async function doSearch(imgURL, db, debug = false) {
                 if (similarity < config.picfinder.saucenaoLowAcc) {
                     lowAcc = true;
                     warnMsg += CQ.escape(`\n相似度[${similarity}%]过低，如果这不是你要找的图，那么可能：确实找不到此图/图为原图的局部图/图清晰度太低/搜索引擎尚未同步新图\n`);
-                    if (config.picfinder.useAscii2dWhenLowAcc && (db == snDB.all || db == snDB.pixiv)) { warnMsg += '自动使用 ascii2d 进行搜索\n'; }
+                    if (config.picfinder.useAscii2dWhenLowAcc && (db == snDB.all || db == snDB.pixiv) && (whitegroup == true || whiteqq == true)) {
+                        warnMsg += '自动使用 ascii2d 进行搜索\n';
+                    }
                     if (config.picfinder.saucenaoHideImgWhenLowAcc) thumbnail = null;
                 }
 
@@ -110,7 +118,7 @@ async function doSearch(imgURL, db, debug = false) {
                     url,
                     title: `SauceNAO [${similarity}%]${title}`,
                     thumbnail,
-                    author_url: member_id && url.indexOf('pixiv.net') >= 0 ? `https://pixiv.net/u/${member_id}` : null,
+                    author_url: member_id && url.indexOf('pixiv.net') >= 0 ? `https://pixiv.net/u/${member_id}${(thumbnail != null ? '\nLook: https://pixivic.com/artist/' + member_id : '')}` : null,
                     source,
                 });
 
@@ -120,8 +128,7 @@ async function doSearch(imgURL, db, debug = false) {
                 if (bookName) {
                     bookName = bookName.replace('(English)', '');
                     const book = await nhentai(bookName).catch(e => {
-                        logger2.error(`${new Date().toLocaleString()} [error] nhentai`);
-                        logger2.error(e);
+                        logger2.error(`${getTime()}[error] nhentai:` + e);
                         //console.error(`${new Date().toLocaleString()} [error] nhentai`);
                         //console.error(e);
                         return false;
@@ -136,8 +143,9 @@ async function doSearch(imgURL, db, debug = false) {
                     }
                     msg = await getShareText({
                         url,
-                        title: `[${similarity}%] ${bookName}`,
-                        thumbnail,
+                        title: `[${similarity}%] ${bookName}`
+                            /*,
+                                                    thumbnail,*/ //禁止发本子简略图
                     });
                 }
 
@@ -154,37 +162,37 @@ async function doSearch(imgURL, db, debug = false) {
                         break;
 
                     default:
-                        logger2.error(data);
+                        logger2.error(`${getTime()},${data}`);
                         //console.error(data);
                         msg = `saucenao[${hostIndex}] ${data.header.message}`;
                         break;
                 }
             } else {
-                logger2.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
+                logger2.error(`${getTime()}[error] saucenao[${hostIndex}][data]`);
                 logger2.error(data);
                 //console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][data]`);
                 //console.error(data);
             }
         })
         .catch(e => {
-            logger2.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
+            logger2.error(`${getTime()}[error] saucenao[${hostIndex}][request]`);
             //console.error(`${new Date().toLocaleString()} [error] saucenao[${hostIndex}][request]`);
             excess = true; //saucenao报错自动使用其它搜索引擎
             if (e.response) {
                 if (e.response.status == 429) {
                     msg = `saucenao[${hostIndex}] 搜索次数已达单位时间上限，请稍候再试`;
                 } else {
-                    logger2.error(e.response.data);
+                    logger2.error(`${e.response.data}`);
                     /*console.error(e.response.data);*/
                 }
             } else {
-                logger2.error(e);
+                logger2.error(`${e}`);
                 /*console.error(e);*/
             }
         });
 
     if (config.picfinder.debug) {
-        logger2.info(`[debug]${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
+        logger2.info(`${getTime()}[saucenao][${hostIndex}]\n${msg}`);
         //console.log(`${new Date().toLocaleString()} [saucenao][${hostIndex}]\n${msg}`);
     }
 
@@ -203,21 +211,33 @@ async function doSearch(imgURL, db, debug = false) {
  * @param {string} url
  * @returns
  */
-async function confuseURL(url) {
-    const { hostname } = parse(url);
+async function confuseURL(url, thumbnail) {
+    const {
+        hostname
+    } = parse(url);
     if (['danbooru.donmai.us', 'konachan.com', 'yande.re'].includes(hostname)) {
-        const { result, path, error } = await shorten(url);
+        const {
+            result,
+            path,
+            error
+        } = await shorten(url);
         return error ? result : `https://j.loli.best/#${path}`;
     }
-    return pixivShorten(url);
+    return pixivShorten(url, thumbnail);
 }
 
-async function getShareText({ url, title, thumbnail, author_url, source }) {
+async function getShareText({
+    url,
+    title,
+    thumbnail,
+    author_url,
+    source
+}) {
     let text = `${title}
     ${thumbnail ? CQ.img(thumbnail) : config.picfinder.replys.lowAccImgPlaceholder}
-    ${await confuseURL(url)}`;
-    if (author_url) text += `\nAuthor: ${await confuseURL(author_url)}`;
-    if (source) text += `\nSource: ${await confuseURL(source)}`;
+    ${await confuseURL(url,thumbnail)}`;
+    if (author_url) text += `\nAuthor: ${await confuseURL(author_url,thumbnail)}`;
+    if (source) text += `\nSource: ${await confuseURL(source,thumbnail)}`;
     return text;
 }
 
@@ -243,6 +263,12 @@ function getSearchResult(host, imgURL, db = 999) {
     });
 }
 
+function getTime() {
+    return new Date().toLocaleString();
+}
+
 export default doSearch;
 
-export { snDB };
+export {
+    snDB
+};

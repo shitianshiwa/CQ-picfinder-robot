@@ -32,7 +32,7 @@ class Logger {
         this.searchCount = []; //搜索次数记录
         this.hsaSign = []; //每日签到
         this.date = new Date().getDate();
-        this.adminSigned = false; //自动帮自己签到的标志
+        this.dailyJobDone = false; //每日任务是否完成
 
         setInterval(() => {
             //每日初始化
@@ -41,7 +41,7 @@ class Logger {
                 this.date = nowDate;
                 this.searchCount = [];
                 this.hsaSign = [];
-                this.adminSigned = false;
+                this.dailyJobDone = false;
             }
         }, config.picfinder.searchModeTimeout * 1000);
     }
@@ -65,17 +65,17 @@ class Logger {
     }
 
     /**
-     * 管理员是否可以签到（用于自动签到）
+     * 是否可以执行每日任务
      *
      * @returns 可以或不可以
      * @memberof Logger
      */
-    canAdminSign(u) {
-        if (this.adminSigned) return false;
-        this.hsaSign.push(u); //给管理员通知已自动签到过了
-        this.adminSigned = true;
+    canDoDailyJob() {
+        if (this.dailyJobDone) return false;
+        this.dailyJobDone = true;
         return true;
     }
+
 
     /**
      * 搜图模式开关
@@ -196,6 +196,7 @@ class Logger {
      */
     canSearch(u, limit, key = 'search') {
         if (!this.searchCount[u]) this.searchCount[u] = {};
+
         if (key == 'setu') {
             if (!this.searchCount[u][key])
                 this.searchCount[u][key] = {
@@ -207,8 +208,13 @@ class Logger {
             if (setuLog.date + limit.cd * 1000 > new Date().getTime() || setuLog.count >= limit.value) return false;
             return true;
         }
-        if (limit == 0) { return true; } //不限制搜图数量
-        if (!this.searchCount[u][key]) { this.searchCount[u][key] = 0 };
+
+        if (limit == 0) {
+            return true;
+        } //不限制搜图数量
+        if (!this.searchCount[u][key]) {
+            this.searchCount[u][key] = 0
+        };
         return this.searchCount[u][key];
         //console.log(this.searchCount[u][key]);
         //if (this.searchCount[u][key] < limit) return true;

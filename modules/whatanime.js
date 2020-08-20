@@ -33,7 +33,7 @@ async function doSearch(imgURL, debug = false) {
     await getSearchResult(imgURL, hosts[hostIndex])
         .then(async ret => {
             if (debug) {
-                logger2.info(`\n[debug] whatanime[${hostIndex}]:`);
+                logger2.info(`\n${getTime()},whatanime[${hostIndex}]:`);
                 logger2.info(JSON.stringify(ret.data));
                 //console.log(`\n[debug] whatanime[${hostIndex}]:`);
                 //console.log(JSON.stringify(ret.data));
@@ -53,7 +53,7 @@ async function doSearch(imgURL, debug = false) {
             let limit = ret.limit; //剩余搜索次数
             let limit_ttl = ret.limit_ttl; //次数重置时间
             if (ret.docs.length == 0) {
-                logger2.info(`${new Date().toLocaleString()} [out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
+                logger2.info(`${getTime()}[out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
                 //console.log(`${new Date().toLocaleString()} [out] whatanime[${hostIndex}]:${retcode}\n${JSON.stringify(ret)}`);
                 msg = `WhatAnime：当前剩余可搜索次数貌似用光啦！请等待${{limit_ttl}}秒后再试！`;
                 return;
@@ -88,7 +88,14 @@ async function doSearch(imgURL, debug = false) {
                     if (limit <= 3) {
                         appendMsg(`WhatAnime[${hostIndex}]：注意，${limit_ttl}秒内搜索次数仅剩${limit}次`);
                     }
-                    appendMsg(img, false);
+                    if (isR18) {
+                        appendMsg(`发现是r18动画封面简略图，不予显示`);
+                    } else if (similarity >= 90) {
+                        appendMsg(img, false);
+                    } else {
+                        appendMsg(`因为相似度不够高，所以简略图不予显示`);
+                    }
+
                     appendMsg(romaName);
                     if (jpName != romaName) appendMsg(jpName);
                     if (cnName != romaName && cnName != jpName) appendMsg(cnName);
@@ -106,16 +113,16 @@ async function doSearch(imgURL, debug = false) {
                 })
                 .catch(e => {
                     appendMsg('获取番剧信息失败');
-                    console.error(`${new Date().toLocaleString()} [error] whatanime getAnimeInfo ${e}`);
+                    console.error(`${getTime()}[error] whatanime getAnimeInfo ${e}`);
                 });
 
             if (config.picfinder.debug) {
-                logger2.info(`\n[debug][whatanime][${hostIndex}]\n${msg}`);
+                logger2.info(`\n${getTime()}[whatanime][${hostIndex}]\n${msg}`);
                 //console.log(`\n[debug][whatanime][${hostIndex}]\n${msg}`);
             }
         })
         .catch(e => {
-            logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${e}`);
+            logger2.error(`${getTime()}[error] whatanime[${hostIndex}] ${e}`);
             //logger2.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
             //console.error(`${new Date().toLocaleString()} [error] whatanime[${hostIndex}] ${JSON.stringify(e)}`);
         });
@@ -153,8 +160,12 @@ async function getSearchResult(imgURL, host) {
                 }
             })
         )*/
-        .then(({ data: image }) =>
-            Axios.post(`${host}/api/search` + (token ? `?token=${token}` : ''), { image: Buffer.from(image, 'binary').toString('base64') })).then(ret => {
+        .then(({
+                data: image
+            }) =>
+            Axios.post(`${host}/api/search` + (token ? `?token=${token}` : ''), {
+                image: Buffer.from(image, 'binary').toString('base64')
+            })).then(ret => {
             json.data = ret.data;
             json.code = ret.status;
         })
@@ -168,7 +179,7 @@ async function getSearchResult(imgURL, host) {
             if (e.response) {
                 json.code = e.response.status;
                 json.data = e.response.data;
-                logger2.error(`${new Date().toLocaleString()} [error] whatanime ${e}`);
+                logger2.error(`${getTime()}[error] whatanime ${e}`);
             } else throw e;
         });
 
@@ -182,7 +193,9 @@ async function getSearchResult(imgURL, host) {
  * @returns Prased JSON
  */
 function getAnimeInfo(anilistID) {
-    return Axios.get(`${waURL}/info?anilist_id=${anilistID}`).then(({ data }) => data[0]);
+    return Axios.get(`${waURL}/info?anilist_id=${anilistID}`).then(({
+        data
+    }) => data[0]);
     /*return new Promise((resolve, reject) => {
         //由于axios无法自定义UA会被block，因此使用request
         Request.get(
@@ -199,4 +212,7 @@ function getAnimeInfo(anilistID) {
     });*/
 }
 
+function getTime() {
+    return new Date().toLocaleString();
+}
 export default doSearch;

@@ -387,7 +387,7 @@ async function start() {
                                 let t = setTimeout(() => {
                                     clearTimeout(t);
                                     quanjuyanshi = false
-                                }, 10000);
+                                }, 60000);
                                 replyMsg(context, setting.replys.default);
                             }
                         }
@@ -411,7 +411,7 @@ async function start() {
                             let t = setTimeout(() => {
                                 clearTimeout(t);
                                 quanjuyanshi = false
-                            }, 10000);
+                            }, 60000);
                             replyMsg(context, setting.replys.default);
                         }
                     }

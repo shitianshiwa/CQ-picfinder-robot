@@ -314,7 +314,7 @@ async function start() {
     }
 
     //私聊以及群组@的处理
-    var quanjuyanshi = false; //私聊全局延时10秒限制
+    var privateqq = new Array();
 
     function privateAndAtMsg(context) {
         let temp = context.message.split("CQ:at,qq=");
@@ -382,11 +382,11 @@ async function start() {
                         }
                         if (has == false) {
                             //e.stopPropagation();
-                            if (quanjuyanshi == false) {
-                                quanjuyanshi = true;
+                            if (privateqq[context.user_id.toString()] == null) {
+                                privateqq[context.user_id.toString()] = true;
                                 let t = setTimeout(() => {
                                     clearTimeout(t);
-                                    quanjuyanshi = false
+                                    privateqq[context.user_id.toString()] = null;
                                 }, 60000);
                                 replyMsg(context, setting.replys.default);
                             }
@@ -406,11 +406,11 @@ async function start() {
                     }
                     if (has == false) {
                         //e.stopPropagation();
-                        if (quanjuyanshi == false) {
-                            quanjuyanshi = true;
+                        if (privateqq[context.user_id.toString()] == null) {
+                            privateqq[context.user_id.toString()] = true;
                             let t = setTimeout(() => {
                                 clearTimeout(t);
-                                quanjuyanshi = false
+                                privateqq[context.user_id.toString()] = null;
                             }, 60000);
                             replyMsg(context, setting.replys.default);
                         }

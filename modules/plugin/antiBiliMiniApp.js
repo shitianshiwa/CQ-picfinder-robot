@@ -304,7 +304,7 @@ async function antiBiliMiniApp(context, replyFunc) {
         }
         if (search) title = search[1].replace(/\\"/g, '"');
     }
-    if (setting.getVideoInfo && xiaochengxu == true && msg.indexOf('视频') == -1) {
+    if (setting.getVideoInfo && xiaochengxu == true && msg.indexOf('视频') == -1&& msg.indexOf('CQ:video') == -1) {
         const param = await getAvBvFromMsg(msg);
         //logger2.info(param);
         if (param) {
@@ -343,6 +343,7 @@ async function antiBiliMiniApp(context, replyFunc) {
 }
 
 export default antiBiliMiniApp;
+
 
 //https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/video_zone.md
 /*视频分区一览

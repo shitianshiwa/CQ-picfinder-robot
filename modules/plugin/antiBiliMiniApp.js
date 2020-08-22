@@ -295,7 +295,8 @@ async function antiBiliMiniApp(context, replyFunc) {
     let url = null;
     let title2 = "";
     let xiaochengxu = true;
-    if (msg.startsWith('[CQ:rich,') && (msg.indexOf('QQ小程序') !== -1 || msg.indexOf('分享') !== -1) && msg.indexOf('哔哩哔哩') !== -1) {
+    //logger2.info("2333333333333");
+    if (msg.indexOf('com.tencent.structmsg') !== -1 && msg.indexOf('哔哩哔哩') !== -1) {
         //xiaochengxu=true;
         if (setting.despise) {
             replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
@@ -304,11 +305,12 @@ async function antiBiliMiniApp(context, replyFunc) {
         const jumpUrl = /"jumpUrl":"(.+?)"(?:,|})/.exec(CQ.unescape(msg));
         title2 = /"title":"(.+?)"(?:,|})/.exec(CQ.unescape(msg));
         if (jumpUrl) {
-            url = jumpUrl[1].replace(/\\"/g, '"'); //不是视频
+            url = jumpUrl[1].replace(/\\/g, ""); //不是视频
         }
-        if (search) title = search[1].replace(/\\"/g, '"');
+        if (search) title = search[1].replace(/\\/g, "");
+        //logger2.info("2333333333333");
     }
-    if (setting.getVideoInfo && xiaochengxu == true && msg.indexOf('视频') == -1 && msg.indexOf('CQ:video') == -1) {
+    if (setting.getVideoInfo && xiaochengxu == true /*&& msg.indexOf('视频') == -1*/ && msg.indexOf('CQ:video') == -1) {
         const param = await getAvBvFromMsg(msg);
         //logger2.info(param);
         if (param) {
@@ -540,4 +542,5 @@ Korea相关	korea	131	Korea相关音乐、舞蹈、综艺等视频	/v/ent/korea
 海外剧	overseas	187		/v/tv/overseas
 
 https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/status_number.md
+
 视频状态数*/

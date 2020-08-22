@@ -1219,7 +1219,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + err)
                 });
             case 'group':
                 return bot('send_group_msg', {
@@ -1228,7 +1228,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + err)
                 });
             case 'discuss':
                 return bot('send_discuss_msg', {
@@ -1237,7 +1237,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ" + err)
                 });
         }
     }

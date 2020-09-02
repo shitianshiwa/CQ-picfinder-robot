@@ -284,8 +284,8 @@ async function start() {
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
-                    logger2.info("gocqhttp在线中：" + data1.online + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version)
-                    replyMsg(context, "gocqhttp在线中：" + data1.online + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
+                    logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version)
+                    replyMsg(context, "goc-qhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
                 }).catch(err => {
                     logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
                 });
@@ -329,7 +329,7 @@ async function start() {
         }
         //logger2.info("目标QQ号：" + temp3);
         //限制为好友私聊有效
-        if (((context.message_type == "private" && context.sub_type == "friend") /* || context.user_id == setting.admin*/ ) || (context.message.toString().search("CQ:at,qq=") != -1 && temp3 == context.self_id && temp3 != -1 && context.message_type == "group")) {
+        if (((context.message_type == "private" /*&& context.sub_type == "friend"*/ ) /* || context.user_id == setting.admin*/ ) || (context.message.toString().search("CQ:at,qq=") != -1 && temp3 == context.self_id && temp3 != -1 && context.message_type == "group")) {
             if (commonHandle(context)) {
                 //e.stopPropagation();
                 return;
@@ -1219,7 +1219,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + err)
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'group':
                 return bot('send_group_msg', {
@@ -1228,7 +1228,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + err)
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'discuss':
                 return bot('send_discuss_msg', {
@@ -1237,7 +1237,7 @@ async function start() {
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + err)
+                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
         }
     }

@@ -3,8 +3,11 @@
 # 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3
 
 npm i sqlite
+
 npm i sqlite3
+
 https://www.npmjs.com/package/sqlite
+
 https://www.npmjs.com/package/sqlite3
 
 

@@ -1,6 +1,8 @@
 # CQ-picfinder-robot
 
-# 如果是使用高版本的nodejs，需要再自己安装一次sqlite3 npm i sqlite3
+# 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次sqlite3
+
+npm i sqlite3
 https://www.npmjs.com/package/sqlite3
 
 

@@ -1,6 +1,8 @@
 # CQ-picfinder-robot
 
-# 如果是使用高版本的nodejs，就不能使用自带的node_modules.7z解压文件，只能自己在插件目录点击 打开cmd.bat 输入 npm i 自己下载安装模块
+# 如果是使用高版本的nodejs，需要再自己安装一次sqlite3 npm i sqlite3
+https://www.npmjs.com/package/sqlite3
+
 
 当前跟进原作者版本：v2.14.2 （定时回复（reminder.js）和broadcast.js为最新版）
 

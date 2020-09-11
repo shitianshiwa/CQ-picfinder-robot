@@ -16,7 +16,9 @@ import RandomSeed from 'random-seed';
 import sendSetu from './modules/plugin/setu';
 import ocr from './modules/plugin/ocr';
 import Akhr from './modules/plugin/akhr';
-import _ from 'lodash';
+import _, {
+    random
+} from 'lodash';
 import minimist from 'minimist';
 import {
     rmdInit,
@@ -47,14 +49,17 @@ const rand = RandomSeed.create();
 const searchModeOnReg = new RegExp(setting.regs.searchModeOn);
 const searchModeOffReg = new RegExp(setting.regs.searchModeOff);
 const signReg = new RegExp(setting.regs.sign);
+const signReg2 = new RegExp(setting.regs.sign2);
 const huluezifu = setting.replys.huluezifu;
 const bangzhuzhiling1 = setting.replys.bangzhuzhiling1;
 const bangzhuzhiling2 = setting.replys.bangzhuzhiling2;
 const mingling1 = setting.replys.mingling1;
 const mingling2 = setting.replys.mingling2;
 const qiandaoxianzhishu = setting.sign.qiandaoxianzhishu;
-const signdelay = setting.sign.delay;
-var qiandaotupianjishu = 0; //点赞总数限制
+const chouqianxianzhishu = setting.sign.chouqianxianzhishu;
+const signdelay = setting.sign.delay * 1000;
+var qiandaotupianjishu = 0; //签到总数限制
+var chouqiantupianjishu = 0; //抽签总数限制
 
 //初始化
 var pic1 = -1;
@@ -481,6 +486,7 @@ async function start() {
                         break;
                     }
                 }
+
                 if (qiandaoxianzhi == false && (qiandaosuo.getItem("qiandaosuo") == "false" || qiandaosuo.getItem("qiandaosuo") == undefined) && blackgroup == false) {
                     qiandaoxianzhi = true;
                     let t = setTimeout(() => {
@@ -515,6 +521,42 @@ async function start() {
                             replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed + `\n[CQ:image,file=file:///${pictemp}]`)
                         } else {
                             replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed);
+                        }
+                    }
+                    return true;
+                }
+            } else if (signReg2.exec(context.message)) {
+                //抽签
+                //e.stopPropagation();
+                let blackgroup = false;
+                let blackgroup2 = setting.sign.blackgroup;
+                let i = 0;
+                for (i = 0; i < blackgroup2.length; i++) {
+                    if (context.group_id == blackgroup2[i]) {
+                        blackgroup = true;
+                        break;
+                    }
+                }
+
+                if (qiandaoxianzhi == false && (qiandaosuo.getItem("qiandaosuo") == "false" || qiandaosuo.getItem("qiandaosuo") == undefined) && blackgroup == false) {
+                    qiandaoxianzhi = true;
+                    let t = setTimeout(() => {
+                        clearInterval(t);
+                        qiandaoxianzhi = false;
+                    }, signdelay);
+                    let temp = getIntRand(pic1);
+                    let pictemp = null;
+                    if (temp != -1) {
+                        pictemp = path.join(__dirname, "./tuku/" + temp.toString() + ".jpg");
+                    }
+                    chouqiantupianjishu++;
+                    logger2.info("抽签最大限制数(-1等于不限制)：" + chouqianxianzhishu);
+                    logger2.info("抽签数：" + chouqiantupianjishu);
+                    if (chouqiantupianjishu <= chouqianxianzhishu || chouqianxianzhishu == -1) { //抽签总数限制
+                        if (pictemp != null) {
+                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]`)
+                        } else {
+                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + "未找到图片！");
                         }
                     }
                     return true;
@@ -1054,7 +1096,9 @@ async function start() {
     var j1 = schedule.scheduleJob('0 0 0 * * *', async function() { //每天0时0分0秒清0。定时器
         let t = new Date();
         logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + qiandaotupianjishu)
-        qiandaotupianjishu = 0; //一天的点赞总数
+        qiandaotupianjishu = 0; //一天的签到总数
+        logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + chouqiantupianjishu)
+        chouqiantupianjishu = 0; //一天的抽签总数
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
         pic1 = await new Promise(function(resolve, reject) {
@@ -1282,6 +1326,19 @@ async function start() {
      */
     function getRand() {
         return rand.floatBetween(0, 100);
+    }
+
+    /**
+     * 生成指定范围随机整数
+     *
+     * @returns 0到指定值之间的随机整数
+     */
+    function getIntRand(i) {
+        if (i > 0) {
+            return rand.intBetween(0, i);
+        } else {
+            return -1;
+        }
     }
 
     function getTime() {

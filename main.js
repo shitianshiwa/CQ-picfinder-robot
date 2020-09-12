@@ -319,7 +319,7 @@ async function start() {
     }
 
     //私聊以及群组@的处理
-    var privateqq = new Array();
+    var privateqq = new Array(); //针对QQ号延时保护
 
     function privateAndAtMsg(context) {
         let temp = context.message.split("CQ:at,qq=");
@@ -554,9 +554,9 @@ async function start() {
                     logger2.info("抽签数：" + chouqiantupianjishu);
                     if (chouqiantupianjishu <= chouqianxianzhishu || chouqianxianzhishu == -1) { //抽签总数限制
                         if (pictemp != null) {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]`)
+                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]`, true, true)
                         } else {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + "未找到图片！");
+                            replyMsg(context, "未找到图片！", true, true);
                         }
                     }
                     return true;
@@ -681,10 +681,19 @@ async function start() {
      * @param {number} [customDB=-1]
      * @returns
      */
+    var searchImgqq = new Array(); //针对搜图的延时保护，以QQ号为单位
     async function searchImg(context, customDB = -1) {
         const args = parseArgs(context.message);
         const hasWord = word => context.message.indexOf(word) !== -1;
-
+        if (searchImgqq[context.user_id.toString()] == null) {
+            searchImgqq[context.user_id.toString()] = true;
+            let t = setTimeout(() => {
+                clearTimeout(t);
+                searchImgqq[context.user_id.toString()] = null;
+            }, 15 * 1000);
+        } else {
+            return;
+        }
         //OCR
         if (args.ocr) {
             doOCR(context);
@@ -757,7 +766,7 @@ async function start() {
                 //console.log(tupianshu);
                 tupianshu--;
                 //console.log(tupianshu);
-                if (args['url']) replyMsg(context, img.url.replace(/\/[0-9]+\//, '//').replace(/\?.*$/, ''));
+                if (args['url']) replyMsg(context, img.url.replace(/\/[0-9]+\//, '//').replace(/\?.*$/, ''), true, true);
                 else {
                     //获取缓存
                     let hasCache = false;
@@ -776,7 +785,7 @@ async function start() {
                                 if (cmsg.search("ascii2d") != -1 && (whitegroup == false || whiteqq == false)) {
                                     continue;
                                 }
-                                replyMsg(context, `${CQ.escape('[缓存]')}${cmsg}\n---`, true);
+                                replyMsg(context, `${CQ.escape('[缓存]')}${cmsg}\n---`, true, true);
 
                                 //replySearchMsgs(context, `${CQ.escape('[缓存]')}${cmsg}\n---`);
                             }
@@ -886,7 +895,7 @@ async function start() {
                             //改为私聊
                             jishu++; //发送延迟太大还是导致消息排列错位
                             if (useAscii2d == true || useWhatAnime == true) {
-                                replyMsg(context, jishu.toString() + "\n" + saRet.msg, true);
+                                replyMsg(context, jishu.toString() + "\n" + saRet.msg, true, true);
                                 replyMsg(context, saRet.warnMsg);
                                 /*bot('send_private_msg', {
                                     user_id: context.user_id,
@@ -895,7 +904,7 @@ async function start() {
                                     logger2.error(new Date().toString() + ",Saucenao," + err)
                                 });*/
                             } else {
-                                replyMsg(context, jishu.toString() + "\n" + saRet.msg + "\n" + saRet.warnMsg + "\n---", true);
+                                replyMsg(context, jishu.toString() + "\n" + saRet.msg + "\n" + saRet.warnMsg + "\n---", true, true);
                                 /*bot('send_private_msg', {
                                     user_id: context.user_id,
                                     message: jishu.toString() + "\n" + saRet.msg + saRet.warnMsg + "\n---",
@@ -940,7 +949,7 @@ async function start() {
                                 });
                                 if (asErr) {
                                     const errMsg = (asErr.response && asErr.response.data.length < 50 && `\n${asErr.response.data}`) || '';
-                                    replyMsg(context, "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, true); //ascii2d因未知原因搜索失败);
+                                    replyMsg(context, "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, true, true); //ascii2d因未知原因搜索失败);
                                     /*bot('send_private_msg', {
                                         user_id: context.user_id,
                                         message: "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, //ascii2d因未知原因搜索失败
@@ -964,7 +973,7 @@ async function start() {
                                             //replyMsg(context, `因为搜索到的结果有风险，所以自动转发到私聊`);
                                         }*/
                                         jishu++;
-                                        replyMsg(context, jishu + "\n今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`, true);
+                                        replyMsg(context, jishu + "\n今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`, true, true);
                                         /*bot('send_private_msg', {
                                             user_id: context.user_id,
                                             message: jishu + "\n今日ascii2d使用次数:" + temp + "\n" + color + "\n" + bovw + `\n---`,
@@ -1023,7 +1032,7 @@ async function start() {
                             //改为私聊
                             if (useSaucenao == false) {
                                 jishu++;
-                                replyMsg(context, jishu.toString() + "\n" + waRet.msg + "\n---", true);
+                                replyMsg(context, jishu.toString() + "\n" + waRet.msg + "\n---", true, true);
                                 /*bot('send_private_msg', {
                                     user_id: context.user_id,
                                     message: jishu.toString() + "\n" + waRet.msg + "\n---",
@@ -1253,8 +1262,11 @@ async function start() {
      * @param {string} msg 回复内容
      * @param {boolean} at 是否at发送者
      */
-    function replyMsg(context, msg, at = false) {
+    function replyMsg(context, msg, at = false, reply = false) {
         if (typeof msg !== 'string' || msg.length === 0) return;
+        if (context.message_type !== 'private') {
+            msg = `${reply ? CQ.reply(context.message_id) : ''}${at ? CQ.at(context.user_id) : ''}${msg}`;
+        }
         switch (context.message_type) {
             case 'private':
                 return bot('send_private_msg', {
@@ -1268,7 +1280,7 @@ async function start() {
             case 'group':
                 return bot('send_group_msg', {
                     group_id: context.group_id,
-                    message: at ? CQ.at(context.user_id) + msg : msg,
+                    message: msg,
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {
@@ -1277,7 +1289,7 @@ async function start() {
             case 'discuss':
                 return bot('send_discuss_msg', {
                     discuss_id: context.discuss_id,
-                    message: at ? CQ.at(context.user_id) + msg : msg,
+                    message: msg,
                 }).then(data => {
                     logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
                 }).catch(err => {

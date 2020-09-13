@@ -102,11 +102,11 @@ dist
 
 # TernJS port file
 .tern-port
-nodejs/install_tools.bat
-nodejs/node.exe
 nodejs/node_etw_provider.man
 nodejs/nodevars.bat
 nodejs/npm
 nodejs/npm.cmd
 nodejs/npx
 nodejs/npx.cmd
+nodejs/node.exe
+nodejs/install_tools.bat

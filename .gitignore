@@ -110,3 +110,14 @@ nodejs/npx
 nodejs/npx.cmd
 nodejs/node.exe
 nodejs/install_tools.bat
+nodejs_x64/node_etw_provider.man
+nodejs_x64/install_tools.bat
+nodejs_x64/node.exe
+nodejs_x64/nodevars.bat
+nodejs_x64/npm.cmd
+package-lock.json
+nodejs_x64/npx.cmd
+package-lock.json
+nodejs_x64/npx
+nodejs_x64/npm
+package-lock.json

@@ -55,7 +55,7 @@
         "random-seed": "^0.3.0",
         "request": "^2.88.0",
         "socks-proxy-agent": "^5.0.0",
-        "sqlite": "^4.0.12",
+        "sqlite": "^4.0.14",
         "sqlite3": "^4.2.0",
         "tencentcloud-sdk-nodejs": "^3.0.118",
         "winston": "^3.2.1"

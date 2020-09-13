@@ -2,7 +2,7 @@
 
 # 已经连node-v13.9.0-windows-x64一块打包了
 
-# 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3
+# 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3 canvas
 
 npm i sqlite3
 
@@ -10,6 +10,7 @@ https://www.npmjs.com/package/sqlite
 
 https://www.npmjs.com/package/sqlite3
 
+https://www.npmjs.com/package/canvas
 
 当前跟进原作者版本：v2.14.2 （定时回复（reminder.js）和broadcast.js为最新版）
 

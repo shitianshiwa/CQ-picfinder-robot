@@ -1,8 +1,8 @@
 # CQ-picfinder-robot
 
-# 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3
+# 已经连node-v13.9.0-windows-x64一块打包了
 
-npm i sqlite
+# 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3
 
 npm i sqlite3
 

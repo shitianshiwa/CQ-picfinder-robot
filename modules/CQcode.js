@@ -6,15 +6,15 @@
  * @returns 转义后的字符串
  */
 function escape(str, insideCQ = false) {
-  // TODO: 待 Mrs4s/go-cqhttp#9 修复后恢复转义
-  //return str;
-  let temp = str.replace(/&/g, '&amp;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;');
-  if (insideCQ) {
-    temp = temp
-      .replace(/,/g, '&#44;')
-      .replace(/(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]/g, ' ');
-  }
-  return temp;
+    // TODO: 待 Mrs4s/go-cqhttp#9 修复后恢复转义
+    //return str;
+    let temp = str.replace(/&/g, '&amp;').replace(/\[/g, '&#91;').replace(/\]/g, '&#93;');
+    if (insideCQ) {
+        temp = temp
+            .replace(/,/g, '&#44;')
+            .replace(/(\ud83c[\udf00-\udfff])|(\ud83d[\udc00-\ude4f\ude80-\udeff])|[\u2600-\u2B55]/g, ' ');
+    }
+    return temp;
 }
 
 /**
@@ -24,7 +24,7 @@ function escape(str, insideCQ = false) {
  * @returns 反转义后的字符串
  */
 function unescape(str) {
-  return str.replace(/&#44;/g, ',').replace(/&#91;/g, '[').replace(/&#93;/g, ']').replace(/&amp;/g, '&');
+    return str.replace(/&#44;/g, ',').replace(/&#91;/g, '[').replace(/&#93;/g, ']').replace(/&amp;/g, '&');
 }
 
 /**
@@ -34,9 +34,9 @@ function unescape(str) {
  * @returns CQ码 图片
  */
 function img(file) {
-  //TODO: Mrs4s/go-cqhttp#9
-  return `[CQ:image,file=${file}]`;
-  //return `[CQ:image,file=${escape(file, true)}]`;
+    //TODO: Mrs4s/go-cqhttp#9
+    return `[CQ:image,file=${file}]`;
+    //return `[CQ:image,file=${escape(file, true)}]`;
 }
 
 /**
@@ -46,7 +46,7 @@ function img(file) {
  * @returns CQ码 图片
  */
 function img64(base64) {
-  return `[CQ:image,file=base64://${base64}]`;
+    return `[CQ:image,file=base64://${base64}]`;
 }
 
 /**
@@ -60,7 +60,7 @@ function img64(base64) {
  * @returns CQ码 分享链接
  */
 function share(url, title, content, image) {
-  return `[CQ:share,url=${escape(url, true)},title=${escape(title, true)},content=${escape(
+    return `[CQ:share,url=${escape(url, true)},title=${escape(title, true)},content=${escape(
     content,
     true
   )},image=${escape(image, true)}]`;
@@ -73,14 +73,25 @@ function share(url, title, content, image) {
  * @returns CQ码 @
  */
 function at(qq) {
-  return `[CQ:at,qq=${qq}] `;
+    return `[CQ:at,qq=${qq}] `;
+}
+
+/**
+ * CQ码 回复
+ *
+ * @param {number} id 消息ID
+ * @returns CQ码 回复
+ */
+function reply(id) {
+    return `[CQ:reply,id=${id}]`;
 }
 
 export default {
-  escape,
-  unescape,
-  share,
-  img,
-  img64,
-  at,
+    escape,
+    unescape,
+    share,
+    img,
+    img64,
+    at,
+    reply,
 };

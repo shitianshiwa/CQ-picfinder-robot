@@ -8,6 +8,8 @@
     "picfinder": {
         "debug": false,
         "admin": -1,
+        "enablePM": true,
+        "enableGM": true,
         "a2dwhitegroup": [],
         "a2dwhiteqq": [],
         "blackgroup": [],

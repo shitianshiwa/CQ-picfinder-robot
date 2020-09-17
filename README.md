@@ -4,6 +4,10 @@
 
 # 如果是使用高版本的nodejs，需要删掉package-lock.json，再自己安装一次 sqlite sqlite3 canvas
 
+# 当前改为适配go-cqhttp https://github.com/Mrs4s/go-cqhttp/ 
+
+# 连接方式改为 HTTP POST多点上报 https://github.com/howmanybots/cqhttp-node-sdk
+
 npm i sqlite3
 
 https://www.npmjs.com/package/sqlite
@@ -12,12 +16,14 @@ https://www.npmjs.com/package/sqlite3
 
 https://www.npmjs.com/package/canvas
 
-当前跟进原作者版本：v2.18.1 （定时回复（reminder.js）和broadcast.js为最新版）
+当前跟进原作者版本：v2.18.1
+
 未跟进内容有：
+
 v2.13.2
 - 弃用 mysql，仅使用 sqlite，配置项转移
 v2.14.2
- 自定义每日资料卡点赞名单
+- 自定义每日资料卡点赞名单
 - 配置项变更
 v2.15.0 
 - 配置项变更
@@ -27,27 +33,21 @@ v2.15.1
 v2.15.2
 - 搜图参数及图库关键字中的`book`修改为`doujin`，但`book`依然可用
 v2.16.1
-每日任务
-debug（调试）模式下长消息截断
+- 每日任务
+- debug（调试）模式下长消息截断
 v2.17.0
-支持[配置热重载](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E9%85%8D%E7%BD%AE%E7%83%AD%E9%87%8D%E8%BD%BD)
+- 支持[配置热重载](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E9%85%8D%E7%BD%AE%E7%83%AD%E9%87%8D%E8%BD%BD)
 - 改进定时提醒的逻辑
 - 修复机器人手动入群后没有文字反馈的问题
 v2.17.0
-fix: 发送两次已上线
+- fix: 发送两次已上线
 v2.18.0
-增加[语言库](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#%E8%AF%AD%E8%A8%80%E5%BA%93%E8%87%AA%E5%8A%A8%E5%9B%9E%E5%A4%8D)功能（自动回复）
+- 增加[语言库](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#%E8%AF%AD%E8%A8%80%E5%BA%93%E8%87%AA%E5%8A%A8%E5%9B%9E%E5%A4%8D)功能（自动回复）
 - 配置项变更
   - A `bot.corpus`
 v2.18.1
 - 修复消息群发失效 ([#101](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/101))
-chore: 改用全局函数
-
-
-
-当前改为适配go-cqhttp https://github.com/Mrs4s/go-cqhttp/ 
-
-连接方式改为 HTTP POST多点上报 https://github.com/howmanybots/cqhttp-node-sdk
+- chore: 改用全局函数
 
 1、强化了b站视频av/bv号解析功能，改了下解析b站分享小程序判断
 

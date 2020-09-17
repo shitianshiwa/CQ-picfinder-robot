@@ -222,19 +222,27 @@ async function start() {
     //设置监听器
     if (setting.debug) {
         //私聊
-        bot.on('message', debugRrivateAndAtMsg);
+        if (setting.enablePM) {
+            bot.on('message', debugRrivateAndAtMsg);
+        }
         //讨论组@
         //bot.on('message.discuss.@me', debugRrivateAndAtMsg);
         //群组@
-        bot.on('message', debugGroupMsg);
+        if (setting.enableGM) {
+            bot.on('message', debugGroupMsg);
+        }
     } else {
         //私聊
-        bot.on('message', privateAndAtMsg);
+        if (setting.enablePM) {
+            bot.on('message', privateAndAtMsg);
+        }
         //讨论组@
         //bot.on('message.discuss.@me', privateAndAtMsg);
         //群组@
         //群组
-        bot.on('message', groupMsg);
+        if (setting.enableGM) {
+            bot.on('message', groupMsg);
+        }
     }
 
     //连接相关监听

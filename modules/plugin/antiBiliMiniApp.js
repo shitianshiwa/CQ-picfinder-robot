@@ -301,6 +301,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     //json
     const data = (() => {
         if (msg.includes('com.tencent.miniapp_01') && msg.includes('哔哩哔哩')) {
+            logger2.info("json:"+msg);
             if (setting.despise) {
                 replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
             }
@@ -313,6 +314,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     //xml
     if (msg.indexOf('com.tencent.structmsg') !== -1 && msg.indexOf('哔哩哔哩') !== -1) {
         //xiaochengxu=true;
+        logger2.info("xml:"+msg);
         if (setting.despise) {
             replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
         }

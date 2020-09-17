@@ -2,6 +2,72 @@
 
 ## 2020
 
+### 09-13 v2.18.1
+
+- 修复消息群发失效 ([#101](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/101))
+
+### 09-12 v2.18.0
+
+- 增加[语言库](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#%E8%AF%AD%E8%A8%80%E5%BA%93%E8%87%AA%E5%8A%A8%E5%9B%9E%E5%A4%8D)功能（自动回复）
+- 配置项变更
+  - A `bot.corpus`
+
+### 09-11 v2.17.1
+
+- 支持`[CQ:json]` ([#100](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/100))
+
+### 09-05 v2.17.0
+
+- 支持[配置热重载](https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8#%E9%85%8D%E7%BD%AE%E7%83%AD%E9%87%8D%E8%BD%BD)
+- 改进定时提醒的逻辑
+- 修复机器人手动入群后没有文字反馈的问题
+
+### 09-05 v2.16.1
+
+- 修复 JSON 转义问题导致的哔哩哔哩小程序识别错误 ([#96](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/96))
+- 改进 nHentai 搜索
+
+### 08-27 v2.16.0
+
+- 增加搜图结果发送缩略图相关的详细设置 ([#90](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/92))
+- 配置项变更
+  - M `bot.saucenaoHideImgWhenLowAcc` -> `bot.hideImgWhenLowAcc`，会自动迁移，无需手动更改
+  - A `bot.hideImg`
+  - A `bot.hideImgWhenWhatanimeR18`
+
+### 08-17 v2.15.4
+
+- 修复定时提醒 interval 超出 32 位有符号整数导致的刷屏问题 ([#90](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/90))
+
+### 08-16 v2.15.3
+
+- 修复反 Bilibili 小程序会响应动态的小程序分享的问题 ([#89](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/89))
+
+### 08-15 v2.15.2
+
+- 修复反 Bilibili 小程序的防刷屏逻辑问题 ([#87](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/87))
+- 搜图参数及图库关键字中的`book`修改为`doujin`，但`book`依然可用
+
+### 08-14 v2.15.1
+
+- 为`config.json`增加`$schema`
+- 恢复群发消息功能 ([#86](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/86))
+
+### 08-13 v2.15.0
+
+- 完全恢复转义，需使用 go-cqhttp v0.9.18 及以上版本
+- 在群内发送搜图结果将会采用回复的形式 ([#84](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/84))
+- 启动时会检查配置文件是否存在以及 JSON 合法性
+- 可独立开关私聊和群组消息的监听
+- 配置项变更
+  - M `picfinder` -> `bot`，会自动迁移，无需手动更改
+  - A `bot.enablePM`
+  - A `bot.enableGM`
+
+### 08-10 v2.14.3
+
+- 恢复部分转义，需使用 go-cqhttp v0.9.16 及以上版本
+
 ### 08-07 v2.14.2
 
 - 因 go-cqhttp 尚未支持转义 [Mrs4s/go-cqhttp#9](https://github.com/Mrs4s/go-cqhttp/issues/9)，因此暂时禁用了消息的转义，待其修复后需要更新 go-cqhttp 和本项目
@@ -22,7 +88,7 @@
 
 - 自定义每日资料卡点赞名单
 - 配置项变更
-  - A `picfinder.dailyLike`
+  - A `bot.dailyLike`
 
 ### 07-24 v2.13.4
 
@@ -32,7 +98,7 @@
 
 - 增加 setu API 超额时的自定义回复
 - 配置项变更
-  - A `picfinder.replys.setuQuotaExceeded`
+  - A `bot.replys.setuQuotaExceeded`
 
 ### 07-02 v2.13.2
 
@@ -48,9 +114,9 @@
 - 弃用 mysql，仅使用 sqlite，配置项转移
 - 配置项变更
   - D `mysql`
-  - A `picfinder.cache`
-  - `mysql.enable` -> `picfinder.cache.enable`
-  - `mysql.expire` -> `picfinder.cache.expire`
+  - A `bot.cache`
+  - `mysql.enable` -> `bot.cache.enable`
+  - `mysql.expire` -> `bot.cache.expire`
 
 ### 5-10 v2.12.6
 
@@ -64,7 +130,7 @@
 
 - 增加私聊回复群聊中搜图结果的功能 ([#60](https://github.com/Tsuk1ko/cq-picsearcher-bot/issues/60))
 - 配置项变更
-  - A `picfinder.pmSearchResult`
+  - A `bot.pmSearchResult`
 
 ### 5-01 v2.12.3
 
@@ -82,7 +148,7 @@
 
 - 增加“反哔哩哔哩小程序”功能，鼓励发链接，发链接时会自动获取视频信息并发送，详情看 wiki 配置说明及附加功能
 - 配置项变更
-  - A `picfinder.antiBiliMiniApp`
+  - A `bot.antiBiliMiniApp`
 
 ### 4-24 v2.11.14
 
@@ -116,7 +182,7 @@
 
 - 增加 setu 的 apikey 设置
 - 配置项变更
-  - A `picfinder.setu.apikey`
+  - A `bot.setu.apikey`
 
 ### 2-21 v2.11.7
 
@@ -131,14 +197,14 @@
 - 增加 SauceNao 低相似度值自定义配置
 - 增加“SauceNao 结果相似度过低时结果缩略图的替代文字”的配置
 - 配置项变更
-  - A `picfinder.saucenaoLowAcc`
-  - A `picfinder.replys.lowAccImgPlaceholder`
+  - A `bot.saucenaoLowAcc`
+  - A `bot.replys.lowAccImgPlaceholder`
 
 ### 2-01 v2.11.4
 
 - 增加“SauceNao 结果相似度过低时隐藏结果缩略图”的配置
 - 配置项变更
-  - A `picfinder.saucenaoHideImgWhenLowAcc`
+  - A `bot.saucenaoHideImgWhenLowAcc`
 
 ### 1-29 v2.11.3
 
@@ -148,8 +214,8 @@
 
 - 增加配置项用于控制是否在 saucenao 结果低相似度或配额耗尽时使用 ascii2d
 - 配置项变更
-  - A `picfinder.useAscii2dWhenQuotaExcess`
-  - A `picfinder.useAscii2dWhenLowAcc`
+  - A `bot.useAscii2dWhenQuotaExcess`
+  - A `bot.useAscii2dWhenLowAcc`
 
 ### 1-15 v2.11.1
 
@@ -178,7 +244,7 @@
 
 - setu 反和谐
 - 配置项变更
-  - A `picfinder.setu.antiShielding`
+  - A `bot.setu.antiShielding`
 
 ### 11-05 v2.9.5
 
@@ -193,7 +259,7 @@
 
 - 支持发送 master1200 大小的 setu 以改善小水管或国内机器发图速度
 - 配置项变更
-  - A `picfinder.setu.size1200`
+  - A `bot.setu.size1200`
 
 ### 10-22 v2.9.2
 
@@ -206,14 +272,14 @@
 - 增加 pm2 配置文件，目前可直接使用`pm2 start|stop|restart|logs`等命令控制
 - 增加按关键词发 setu 以及 r18 setu 功能，若从旧版本升级，请参考 wiki 中 setu 功能说明进行设置
 - 配置项变更（重要）
-  - A `picfinder.setu.r18OnlyInWhite`
-  - M `picfinder.regs.setu`
+  - A `bot.setu.r18OnlyInWhite`
+  - M `bot.regs.setu`
 
 ### 08-21 v2.8.0
 
 - 增加对提醒功能最小提醒间隔的限制，新增配置项支持限制使用场景
 - 提醒功能的 cron 表达式变更为使用分号分隔
-- 增加设置项`picfinder.proxy`，支持使用 http 或 socks 代理
+- 增加设置项`bot.proxy`，支持使用 http 或 socks 代理
 
 ### 08-21 v2.7.2
 
@@ -226,7 +292,7 @@
 
 ### 08-16 v2.7.0
 
-- 增加配置项`picfinder.saucenaoDefaultDB`，用于设置默认 saucenao DB
+- 增加配置项`bot.saucenaoDefaultDB`，用于设置默认 saucenao DB
 - 增加定时提醒功能，详见 README
 
 ### 08-01 v2.6.0
@@ -239,13 +305,13 @@
 - 【腾讯 OCR】支持轮换 API 使用以变相提升免费额度
 - 对【明日方舟公开招募计算器】的 OCR 增加了纠错
 - 增加配置项
-  - `picfinder.searchModeTimeout`
-  - `picfinder.ocr.tencent.useApi`
+  - `bot.searchModeTimeout`
+  - `bot.ocr.tencent.useApi`
 
 ### 07-02 v2.5.3
 
 - 增加了【腾讯 OCR】的支持
-- 增加了`picfinder.setu.pximgServerPort`和`picfinder.setu.usePximgAddr`设置项，以方便使用 Docker 版酷Q的用户
+- 增加了`bot.setu.pximgServerPort`和`bot.setu.usePximgAddr`设置项，以方便使用 Docker 版酷Q的用户
 
 ### 05-25 v2.5.2
 

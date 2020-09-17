@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import {
     get,
     head
@@ -11,7 +12,9 @@ import logError from '../logError';
 import config from '../config';
 import logger2 from '../logger2';
 import dayjs from 'dayjs';
+import parseJSON from '../utils/parseJSON';
 
+//不能反json格式的bili分享小程序(已修？)
 //https://api.bilibili.com/x/web-interface/view?bvid=BV1Kk4y1U7DW
 //https://api.bilibili.com/x/web-interface/view?aid=754167434
 const setting = config.picfinder.antiBiliMiniApp;
@@ -287,15 +290,27 @@ async function getAvBvFromMsg(msg) {
     if ((search = /(av|AV|bv|BV)[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
     return null;
 }
-
+//直接获取链接，所以无视小程序变化
 async function antiBiliMiniApp(context, replyFunc) {
     const msg = context.message;
     const gid = context.group_id;
-    let title = null;
+    let title1 = null;
     let url = null;
     let title2 = "";
     let xiaochengxu = true;
+    //json
+    const data = (() => {
+        if (msg.includes('com.tencent.miniapp_01') && msg.includes('哔哩哔哩')) {
+            if (setting.despise) {
+                replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
+            }
+            return parseJSON(context.message);
+        }
+    })();
+    const qqdocurl = _.get(data, 'meta.detail_1.qqdocurl');
+    const title = _.get(data, 'meta.detail_1.desc');
     //logger2.info("2333333333333");
+    //xml
     if (msg.indexOf('com.tencent.structmsg') !== -1 && msg.indexOf('哔哩哔哩') !== -1) {
         //xiaochengxu=true;
         if (setting.despise) {
@@ -307,11 +322,11 @@ async function antiBiliMiniApp(context, replyFunc) {
         if (jumpUrl) {
             url = jumpUrl[1].replace(/\\/g, ""); //不是视频
         }
-        if (search) title = search[1].replace(/\\/g, "");
+        if (search) title1 = search[1].replace(/\\/g, "");
         //logger2.info("2333333333333");
     }
     if (setting.getVideoInfo && xiaochengxu == true /*&& msg.indexOf('视频') == -1*/ && msg.indexOf('CQ:video') == -1) {
-        const param = await getAvBvFromMsg(msg);
+        const param = await getAvBvFromMsg(qqdocurl || msg);
         //logger2.info(param);
         if (param) {
             const {
@@ -340,6 +355,12 @@ async function antiBiliMiniApp(context, replyFunc) {
             return;
         } else if (title && !isBangumi) {
             const reply = await getSearchVideoInfo(title);
+            if (reply) {
+                replyFunc(context, reply);
+                return;
+            }
+        } else if (title1 && !isBangumi) {
+            const reply = await getSearchVideoInfo(title1);
             if (reply) {
                 replyFunc(context, reply);
                 return;
@@ -542,5 +563,7 @@ Korea相关	korea	131	Korea相关音乐、舞蹈、综艺等视频	/v/ent/korea
 海外剧	overseas	187		/v/tv/overseas
 
 https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/status_number.md
+
+
 
 视频状态数*/

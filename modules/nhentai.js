@@ -1,5 +1,7 @@
 import NHentaiApi from 'nhentai-api';
-import { get } from './axiosProxy';
+import {
+    get
+} from './axiosProxy';
 
 const nhentai = new NHentaiApi();
 
@@ -12,10 +14,11 @@ const getSearchURL = keyword => encodeURI(nhentai.search(keyword));
  * @returns 本子信息
  */
 async function doSearch(name) {
-  let json = await get(getSearchURL(`"${name}" chinese`)).then(r => r.data);
-  if (json.result.length == 0) json = await get(getSearchURL(`"${name}"`)).then(r => r.data);
-  if (json.result.length == 0) return false;
-  return json.result[0];
+    name = name.replace(/\s/g, '');
+    let json = await get(getSearchURL(`${name} chinese`)).then(r => r.data);
+    if (json.result.length == 0) json = await get(getSearchURL(name)).then(r => r.data);
+    if (json.result.length == 0) return false;
+    return json.result[0];
 }
 
 export default doSearch;

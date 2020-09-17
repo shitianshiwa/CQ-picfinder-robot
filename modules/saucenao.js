@@ -139,7 +139,8 @@ async function doSearch(imgURL, db, debug = false, whitegroup, whiteqq) {
                         url = `https://nhentai.net/g/${book.id}/`;
                     } else if (config.picfinder.saucenaoHideImgWhenLowAcc == false) {
                         success = false;
-                        warnMsg += CQ.escape('\n没有在nhentai找到对应的本子_(:3」∠)_\n或者可能是此query因bug而无法在nhentai中获得搜索结果\n');
+                        warnMsg +=
+                            '没有在 nhentai 找到对应的本子，或者可能是此 query 因 bug 而无法在 nhentai 中获得搜索结果 _(:3」∠)_\n';
                     }
                     msg = await getShareText({
                         url,
@@ -150,7 +151,7 @@ async function doSearch(imgURL, db, debug = false, whitegroup, whiteqq) {
                 }
 
                 //处理返回提示
-                if (warnMsg.length > 0) warnMsg = warnMsg.substring(0, warnMsg.lastIndexOf('\n'));
+                if (warnMsg.length > 0) warnMsg = warnMsg.trim();
             } else if (data.header.message) {
                 switch (data.header.message) {
                     case 'Specified file no longer exists on the remote server!':
@@ -235,7 +236,7 @@ async function getShareText({
 }) {
     let text = `${title}
     ${thumbnail ? CQ.img(thumbnail) : config.picfinder.replys.lowAccImgPlaceholder}
-    ${await confuseURL(url,thumbnail)}`;
+    ${url?await confuseURL(url,thumbnail):""}`;
     if (author_url) text += `\nAuthor: ${await confuseURL(author_url,thumbnail)}`;
     if (source) text += `\nSource: ${await confuseURL(source,thumbnail)}`;
     return text;

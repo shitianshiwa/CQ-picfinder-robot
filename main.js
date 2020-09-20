@@ -1277,7 +1277,7 @@ async function start() {
         }
         switch (context.message_type) {
             case 'private':
-                return bot('send_private_msg', {
+                return bot('send_private_msg_rate_limited', {
                     user_id: context.user_id,
                     message: msg,
                 }).then(data => {
@@ -1286,7 +1286,7 @@ async function start() {
                     logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'group':
-                return bot('send_group_msg', {
+                return bot('send_group_msg_rate_limited', {
                     group_id: context.group_id,
                     message: msg,
                 }).then(data => {
@@ -1295,7 +1295,7 @@ async function start() {
                     logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
                 });
             case 'discuss':
-                return bot('send_discuss_msg', {
+                return bot('send_discuss_msg_rate_limited', {
                     discuss_id: context.discuss_id,
                     message: msg,
                 }).then(data => {

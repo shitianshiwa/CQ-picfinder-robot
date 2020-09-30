@@ -351,7 +351,7 @@ async function antiBiliMiniApp(context, replyFunc) {
         }
         //www.bilibili.com / read / cv
         const isBangumi = /(bilibili|www\.bilibili)\.com\/(bangumi|read)|(b23|acg)\.tv\/(ep|ss)/.test(CQ.unescape(msg).replace(/\\\//g,"/")); //true or false
-        logger2.info("bangumi:" + isBangumi);
+        //logger2.info("bangumi:" + isBangumi);
         //console.log("url1:" + url);
         if (isBangumi == true) {
             url = _.get(data, 'meta.detail_1.qqdocurl');

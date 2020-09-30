@@ -301,7 +301,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     //json
     const data = (() => {
         if (msg.includes('com.tencent.miniapp_01') && msg.includes('哔哩哔哩')) {
-            logger2.info("json:"+msg);
+            logger2.info("json:" + CQ.unescape(msg));
             if (setting.despise) {
                 replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
             }
@@ -310,15 +310,16 @@ async function antiBiliMiniApp(context, replyFunc) {
     })();
     const qqdocurl = _.get(data, 'meta.detail_1.qqdocurl');
     const title = _.get(data, 'meta.detail_1.desc');
+    const zuozhe = _.get(data, 'meta.detail_1.host.nick');
     //logger2.info("2333333333333");
-    //xml
-    if (msg.indexOf('com.tencent.structmsg') !== -1 && msg.indexOf('哔哩哔哩') !== -1) {
+    //xml或者json
+    if ((msg.indexOf('com.tencent.structmsg') !== -1 || msg.indexOf('&#91;QQ小程序&#93;') !== -1) && msg.indexOf('哔哩哔哩') !== -1) {
         //xiaochengxu=true;
-        logger2.info("xml:"+msg);
+        logger2.info("xml:" + CQ.unescape(msg));
         if (setting.despise) {
             replyFunc(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
         }
-        const search = /"desc":"(.+?)"(?:,|})/.exec(CQ.unescape(msg));
+        const search = /"desc":"(.+?)"(?:,|})/g.exec(CQ.unescape(msg));
         const jumpUrl = /"jumpUrl":"(.+?)"(?:,|})/.exec(CQ.unescape(msg));
         title2 = /"title":"(.+?)"(?:,|})/.exec(CQ.unescape(msg));
         if (jumpUrl) {
@@ -329,7 +330,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     }
     if (setting.getVideoInfo && xiaochengxu == true /*&& msg.indexOf('视频') == -1*/ && msg.indexOf('CQ:video') == -1) {
         const param = await getAvBvFromMsg(qqdocurl || msg);
-        //logger2.info(param);
+        //logger2.info(param);//可能有null存在
         if (param) {
             const {
                 aid,
@@ -348,23 +349,39 @@ async function antiBiliMiniApp(context, replyFunc) {
                 return;
             }
         }
-        const isBangumi = /bilibili\.com\/bangumi|(b23|acg)\.tv\/(ep|ss)/.test(msg);
+        //www.bilibili.com / read / cv
+        const isBangumi = /(bilibili|www\.bilibili)\.com\/(bangumi|read)|(b23|acg)\.tv\/(ep|ss)/.test(CQ.unescape(msg).replace(/\\\//g,"/")); //true or false
+        logger2.info("bangumi:" + isBangumi);
+        //console.log("url1:" + url);
+        if (isBangumi == true) {
+            url = _.get(data, 'meta.detail_1.qqdocurl');
+            //console.log("url2:" + url);
+        }
         if (url) {
-            console.log("title2:" + title2);
-            console.log("url:" + url);
-            logger2.info("title2:" + title2 + "," + "url:" + url);
-            replyFunc(context, title2[0].replace('"title":"', '标题：').replace('"}', '') + "\n" + url.split("?share_medium=android")[0]); //标题+链接
+            //console.log("title2:" + title2);
+            let author = "";
+            let search2 = CQ.unescape(msg).split('"desc":');
+            if (search2.length == 3) {
+                author = search2[2].split(",")[0].replace(/"/g, ""); //写不出正则表达式就先这样解决了,获取动态的作者
+            } else {
+                author = "";
+            }
+            logger2.info(CQ.unescape(msg));
+            //console.log("url:" + url);
+            //console.log("author: " + author);
+            logger2.info("title2:" + title2 + ",author:" + author + "," + "url:" + url);
+            replyFunc(context, title2[0].replace('"title":"', '标题：').replace('"}', '') + "\n作者/内容：" + author + "\n" + url.split("?share_medium=android")[0]); //标题+链接
             return;
-        } else if (title && !isBangumi) {
+        } else if (title && isBangumi == false) {
             const reply = await getSearchVideoInfo(title);
             if (reply) {
-                replyFunc(context, reply);
+                replyFunc(context, "获取到的标题：" + title + "\n作者：" + zuozhe + "\n" + reply);
                 return;
             }
-        } else if (title1 && !isBangumi) {
+        } else if (title1 && isBangumi == false) {
             const reply = await getSearchVideoInfo(title1);
             if (reply) {
-                replyFunc(context, reply);
+                replyFunc(context, "获取到的标题：" + title1 + "\n" + reply); //不知道具体格式，所以找不出作者
                 return;
             }
         }
@@ -566,6 +583,11 @@ Korea相关	korea	131	Korea相关音乐、舞蹈、综艺等视频	/v/ent/korea
 
 https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/status_number.md
 
-
+https://api.bilibili.com/x/v2/dm/view?aid=797108991&oid=235524170&type=1
+移动端API！
+https://api.bilibili.com/x/player.so?id=cid:235524170&aid=797108991
+https://github.com/indefined/UserScripts/issues/39
+[BLCC]无法读取Bangumi字幕
+#39
 
 视频状态数*/

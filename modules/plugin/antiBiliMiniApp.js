@@ -225,27 +225,27 @@ https://www.bilibili.com/video/${bvid}`
 
 function getSearchVideoInfo(keyword) {
     return get(`https://api.bilibili.com/x/web-interface/search/all/v2?${stringify({ keyword })}`).then(
-            ({
+        ({
+            data: {
                 data: {
-                    data: {
-                        result
-                    },
+                    result
                 },
-            }) => {
-                const videos = result.find(({
-                    result_type: rt
-                }) => rt === 'video').data;
-                if (videos.length === 0) return null;
-                const {
-                    author,
-                    aid,
-                    bvid,
-                    title,
-                    pic,
-                    play,
-                    video_review
-                } = videos[0];
-                return `${CQ.img(`http:${pic}`)}
+            },
+        }) => {
+            const videos = result.find(({
+                result_type: rt
+            }) => rt === 'video').data;
+            if (videos.length === 0) return null;
+            const {
+                author,
+                aid,
+                bvid,
+                title,
+                pic,
+                play,
+                video_review
+            } = videos[0];
+            return `${CQ.img(`http:${pic}`)}
 （搜索）av${aid}
 ${title.replace(/<([^>]+?)[^>]+>(.*?)<\/\1>/g, '$2')}
 UP：${author}
@@ -295,7 +295,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     const msg = context.message;
     const gid = context.group_id;
     let title1 = null;
-    let url = null;
+    let url = "";
     let title2 = "";
     let xiaochengxu = true;
     //json
@@ -311,6 +311,7 @@ async function antiBiliMiniApp(context, replyFunc) {
     const qqdocurl = _.get(data, 'meta.detail_1.qqdocurl');
     const title = _.get(data, 'meta.detail_1.desc');
     const zuozhe = _.get(data, 'meta.detail_1.host.nick');
+    url = _.get(data, 'meta.detail_1.qqdocurl')||"";
     //logger2.info("2333333333333");
     //xml或者json
     if ((msg.indexOf('com.tencent.structmsg') !== -1 || msg.indexOf('&#91;QQ小程序&#93;') !== -1) && msg.indexOf('哔哩哔哩') !== -1) {
@@ -350,14 +351,10 @@ async function antiBiliMiniApp(context, replyFunc) {
             }
         }
         //www.bilibili.com / read / cv
-        const isBangumi = /(bilibili|www\.bilibili)\.com\/(bangumi|read)|(b23|acg)\.tv\/(ep|ss)/.test(CQ.unescape(msg).replace(/\\\//g,"/")); //true or false
+        const isBangumi = /(bilibili|www\.bilibili)\.com\/(bangumi|read)|(b23|acg)\.tv\/(ep|ss)/.test(url.replace(/\\\//g, "/")); //true or false 视频，专栏，番剧
         //logger2.info("bangumi:" + isBangumi);
         //console.log("url1:" + url);
-        if (isBangumi == true) {
-            url = _.get(data, 'meta.detail_1.qqdocurl');
-            //console.log("url2:" + url);
-        }
-        if (url) {
+        if (isBangumi == true) { //过滤奇怪的b站分享小程序
             //console.log("title2:" + title2);
             let author = "";
             let search2 = CQ.unescape(msg).split('"desc":');
@@ -372,18 +369,20 @@ async function antiBiliMiniApp(context, replyFunc) {
             logger2.info("title2:" + title2 + ",author:" + author + "," + "url:" + url);
             replyFunc(context, title2[0].replace('"title":"', '标题：').replace('"}', '') + "\n作者/内容：" + author + "\n" + url.split("?share_medium=android")[0]); //标题+链接
             return;
-        } else if (title && isBangumi == false) {
+        } else if (title && isBangumi == true) {
             const reply = await getSearchVideoInfo(title);
             if (reply) {
                 replyFunc(context, "获取到的标题：" + title + "\n作者：" + zuozhe + "\n" + reply);
                 return;
             }
-        } else if (title1 && isBangumi == false) {
+        } else if (title1 && isBangumi == true) {
             const reply = await getSearchVideoInfo(title1);
             if (reply) {
                 replyFunc(context, "获取到的标题：" + title1 + "\n" + reply); //不知道具体格式，所以找不出作者
                 return;
             }
+        } else {
+            //logger2.info(new Date().toString() + " ,拦截：" + url);
         }
     }
 }

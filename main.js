@@ -59,7 +59,7 @@ const signdelay = setting.sign.delay * 1000;
 var qiandaotupianjishu = 0; //签到总数限制
 var chouqiantupianjishu = 0; //抽签总数限制
 const cache2 = new NodeCache({
-    stdTTL: 1 * 5//秒
+    stdTTL: 1 * 2//秒
 });
 //初始化
 var pic1 = -1;

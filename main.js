@@ -16,9 +16,7 @@ import RandomSeed from 'random-seed';
 import sendSetu from './modules/plugin/setu';
 import ocr from './modules/plugin/ocr';
 import Akhr from './modules/plugin/akhr';
-import _, {
-    random
-} from 'lodash';
+//import _, {  random} from 'lodash';
 import minimist from 'minimist';
 import {
     rmdInit,
@@ -31,7 +29,7 @@ import dayjs from 'dayjs';
 import broadcast from './modules/broadcast';
 import antiBiliMiniApp from './modules/plugin/antiBiliMiniApp';
 import logError from './modules/logError';
-
+import NodeCache from 'node-cache';
 import path from 'path';
 import fs from 'fs';
 import JOIN from 'path'
@@ -60,7 +58,9 @@ const chouqianxianzhishu = setting.sign.chouqianxianzhishu;
 const signdelay = setting.sign.delay * 1000;
 var qiandaotupianjishu = 0; //签到总数限制
 var chouqiantupianjishu = 0; //抽签总数限制
-
+const cache2 = new NodeCache({
+    stdTTL: 1 * 5//秒
+});
 //初始化
 var pic1 = -1;
 const pfcache = setting.cache.enable ? new PFCache() : null;
@@ -343,6 +343,15 @@ async function start() {
         //logger2.info("目标QQ号：" + temp3);
         //限制为好友私聊有效
         if (((context.message_type == "private" /*&& context.sub_type == "friend"*/ ) /* || context.user_id == setting.admin*/ ) || (context.message.toString().search("CQ:at,qq=") != -1 && temp3 == context.self_id && temp3 != -1 && context.message_type == "group")) {
+            let uid = context.user_id;
+            if (uid) {
+                let cacheKeys = [`${uid}-${true}`]; //防御私聊狂刷
+                if (cacheKeys.some(key => cache2.has(key))) {
+                    return;
+                } else {
+                    [true].forEach((id, i) => id && cache2.set(cacheKeys[i], true));
+                }
+            }
             if (commonHandle(context)) {
                 //e.stopPropagation();
                 return;
@@ -467,7 +476,15 @@ async function start() {
     function groupMsg(context) {
         if (context.message_type == "group") {
             //logger2.info(JSON.stringify(context));
-
+            let uid = context.user_id;
+            if (uid) {
+                let cacheKeys = [`${uid}-${true}`]; //防御群聊狂刷
+                if (cacheKeys.some(key => cache2.has(key))) {
+                    return;
+                } else {
+                    [true].forEach((id, i) => id && cache2.set(cacheKeys[i], true));
+                }
+            }
             if (commonHandle(context)) {
                 //e.stopPropagation();
                 return;

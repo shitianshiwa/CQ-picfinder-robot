@@ -333,6 +333,36 @@ ${share_url}`
     return null;
 }
 
+function getCvInfo(cv, gid) {
+    if (cv != null) {
+        logger2.info(`https://api.bilibili.com/x/article/viewinfo?id=${cv}`);
+        return get(`https://api.bilibili.com/x/article/viewinfo?id=${cv}`).then(
+            ({
+                data: {
+                    data: {
+                        title,
+                        author_name
+                    },
+                },
+            }) => {
+                if (gid != null) {
+                    const cacheKeys = [`${gid}-${cv}`]; //支持分群
+                    [cv].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+                }
+                return `标题：${title}
+作者：${author_name}
+链接：https://www.bilibili.com/read/cv${cv}`
+            }
+        ).catch(e => {
+            logError(`${new Date().toLocaleString()} [error] get bilibili cv info`);
+            logError(e);
+            logger2.error(`${new Date().toLocaleString()} [error] get bilibili cv info`);
+            return null;
+        });
+    }
+    return null;
+}
+
 function getMdInfo2(md, gid) {
     if (md != null) {
         logger2.info(`https://api.bilibili.com/pgc/review/user?media_id=${md}`);
@@ -468,7 +498,8 @@ async function antiBiliMiniApp(context, replyFunc) {
     }
     if (setting.getVideoInfo && xiaochengxu == true /*&& msg.indexOf('视频') == -1*/ && msg.indexOf('CQ:video') == -1) {
         const param = await getAvBvFromMsg(qqdocurl || CQ.unescape(msg));
-        const param2 = await getMdFromMsg(qqdocurl || CQ.unescape(msg));
+        const param2 = await getMdFromMsg(qqdocurl || CQ.unescape(msg)); //番剧类
+        const param3 = /bilibili\.com\/read\/cv([0-9]+)/.exec(qqdocurl || CQ.unescape(msg)); //专栏
         //logger2.info(param);//可能有null存在
         if (param) {
             const {
@@ -476,7 +507,7 @@ async function antiBiliMiniApp(context, replyFunc) {
                 bvid
             } = param;
             if (gid) {
-                const cacheKeys = [`${gid}-${aid}`, `${gid}-${bvid}`]; //支持分群
+                let cacheKeys = [`${gid}-${aid}`, `${gid}-${bvid}`]; //支持分群
                 if (cacheKeys.some(key => cache.has(key))) {
                     return;
                 }
@@ -487,15 +518,28 @@ async function antiBiliMiniApp(context, replyFunc) {
                 replyFunc(context, reply);
                 return;
             }
-        } else if (param2 != null) {//新增可解析番剧，纪录片，电影，电视剧信息
+        } else if (param2 != null) { //新增可解析番剧，纪录片，电影，电视剧信息
             if (gid) {
-                const cacheKeys = [`${gid}-${param2}`]; //支持分群
+                let cacheKeys = [`${gid}-${param2}`]; //支持分群
                 if (cacheKeys.some(key => cache.has(key))) {
                     return;
                 }
                 [param2].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
             let temp = await getMdInfo(param2, gid);
+            if (temp != null) {
+                replyFunc(context, temp);
+                return;
+            }
+        } else if (param3 != null) {
+            if (gid) {
+                let cacheKeys = [`${gid}-${param3[1]}`]; //支持分群
+                if (cacheKeys.some(key => cache.has(key))) {
+                    return;
+                }
+                [param3[1]].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+            }
+            let temp = await getCvInfo(param3[1], gid);
             if (temp != null) {
                 replyFunc(context, temp);
                 return;
@@ -742,6 +786,8 @@ https://github.com/indefined/UserScripts/issues/39
 
 视频状态数
 
+专栏
+https://api.bilibili.com/x/article/viewinfo?id=
 
 番剧 https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/bangumi/info.md
 http://api.bilibili.com/pgc/view/web/season?ep_id=

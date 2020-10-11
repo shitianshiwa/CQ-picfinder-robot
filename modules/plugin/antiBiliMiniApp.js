@@ -233,20 +233,24 @@ function getVideoInfo(param, msg, gid) {
                 let sum = 0;
                 let s = "";
                 let temp = attribute.toString(2); //正整数转成二进制字符串
-                for (let i = temp.length - 1; i > 0; i--) { //要反着取出才是从右到左
+                logger2.info("1:" + temp);
+                let s2 = "";
+                for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
+                    s2 += temp[i];
                     if (temp[i] == "1") {
                         if (s != "") {
                             s = s + " , " + attr[sum];
                         } else {
-                            s += attr[sum];
+                            s = s + attr[sum];
                         }
                     }
-                    if (sum < 23) {//目前知道24种状态0-23
+                    if (sum < 23) { //目前知道24种状态0-23
                         sum++;
                     } else {
                         break;
                     }
                 }
+                logger2.info("1:" + s2);
                 return `${CQ.img(pic)}
 尺寸: 宽${width}px , 高${height}px
 av${aid}

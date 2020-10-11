@@ -151,6 +151,33 @@ const fenqu = {
     185: "电视剧-国产剧",
     187: "电视剧-海外剧",
 };
+//https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/info.md
+let attr = {
+    0: "禁止排行",
+    1: "禁止推送(该视频不会自动推送给被关注者)",
+    2: "禁止网页输出",
+    3: "禁止客户端列表",
+    4: "搜索禁止",
+    5: "海外禁止",
+    6: "禁止推荐",
+    7: "禁止转载",
+    8: "高清视频(视频清晰度>=1080P)",
+    9: "是PGC稿件(番剧及影视)",
+    10: "允许承包",
+    11: "是否番剧",
+    12: "是否私单",
+    13: "是否限制地区(大多数番剧)",
+    14: "允许其他人添加tag(默认仅up主可以添加)",
+    15: "未知1",
+    16: "跳转(番剧及影视av/bv->ep跳转)",
+    17: "是否影视",
+    18: "付费",
+    19: "推送动态",
+    20: "家长模式",
+    21: "UGC付费",
+    22: "未知2",
+    23: "是否失效"
+};
 
 function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
@@ -173,6 +200,7 @@ function getVideoInfo(param, msg, gid) {
                         title,
                         pubdate,
                         desc,
+                        attribute,
                         rights: {
                             no_reprint
                         },
@@ -202,16 +230,34 @@ function getVideoInfo(param, msg, gid) {
                     const cacheKeys = [`${gid}-${aid}`, `${gid}-${bvid}`]; //支持分群
                     [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
                 }
+                let sum = 0;
+                let s = "";
+                let temp = attribute.toString(2); //正整数转成二进制字符串
+                for (let i = temp.length - 1; i > 0; i--) { //要反着取出才是从右到左
+                    if (temp[i] == "1") {
+                        if (s != "") {
+                            s = s + " , " + attr[sum];
+                        } else {
+                            s += attr[sum];
+                        }
+                    }
+                    if (sum < 23) {//目前知道24种状态0-23
+                        sum++;
+                    } else {
+                        break;
+                    }
+                }
                 return `${CQ.img(pic)}
 尺寸: 宽${width}px , 高${height}px
 av${aid}
 标题：${title}
 UP：${name} 空间链接：https://space.bilibili.com/${mid}
 视频分区：${fenqu[tid]!=null?fenqu[tid]:tname}
-投稿类型: ${copyright==1?"自制-"+(no_reprint==1?"禁止转载":""):"转载"}  ${his_rank!=0?"历史最高排行: "+his_rank:""}
+投稿类型: ${copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${his_rank!=0?"历史最高排行: "+his_rank:""}
+${s!=""?"视频状态:  "+s:""}
 发布时间：${dayjs(new Date(pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
 视频简介：${desc} 
-视频动态:${dynamic}
+视频动态: ${dynamic}
 ${humanNum(view)}播放 , ${humanNum(videos)}个分P , ${humanNum(danmaku)}弹幕 , ${humanNum(reply)}评论 , 
 ${humanNum(favorite)}收藏 , ${humanNum(share)}分享 , ${humanNum(coin)}硬币 , ${humanNum(like)}点赞 
 https://www.bilibili.com/video/${bvid}`
@@ -791,6 +837,8 @@ https://api.bilibili.com/x/article/viewinfo?id=
 
 番剧 https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/bangumi/info.md
 http://api.bilibili.com/pgc/view/web/season?ep_id=
-http://api.bilibili.com/pgc/view/web/season?season_id=
-https://api.bilibili.com/pgc/review/user?media_id=
+result.cover 番剧封面
+result.title番剧标题
+result.evaluate 简介
+result.link 链接
 */

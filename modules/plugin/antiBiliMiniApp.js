@@ -91,13 +91,20 @@ const fenqu = {
     160: "生活",
     138: "生活-搞笑:\n搞笑的、轻松有趣的、具有独特笑点或娱乐精神的视频",
     21: "生活-日常:\n漫展、cosplay、体育运动及其他一般日常向视频",
-    76: "生活-美食圈:\n美食鉴赏&料理制作教程",
+    //76: "生活-美食圈:\n美食鉴赏&料理制作教程",
     75: "生活-动物圈:\n这里有各种萌萌哒动物哦",
     161: "生活-手工:\n简易手工艺品的diy制作视频，例如；折纸、手账、橡皮章等",
     162: "生活-绘画:\n绘画爱好者们关于绘画技巧、绘图过程的分享交流场所",
     163: "生活-运动:\n一般向运动项目以及惊险刺激的户外极限运动",
     176: "生活-汽车:\n专业汽车资讯，分享车生活",
     174: "生活-其他:\n对于分区归属不明的视频进行归纳整合的特定分区",
+
+    211: "美食",
+    76: "美食制作(原[生活]->[美食圈])\n学做人间美味，展示精湛厨艺",
+    212: "美食侦探\n寻找美味餐厅，发现街头美食",
+    213: "美食测评\n吃货世界，品尝世间美味",
+    214: "田园美食\n品味乡野美食，寻找山与海的味道",
+    215: "美食记录\n记录一日三餐，给生活添一点幸福感",
 
     119: "鬼畜",
     22: "鬼畜-鬼畜调教:\n使用素材在音频、画面上做一定处理，达到与BGM一定的同步感",
@@ -167,7 +174,7 @@ let attr = {
     11: "是否番剧",
     12: "是否私单",
     13: "是否限制地区(大多数番剧)",
-    14: "允许其他人添加tag(默认仅up主可以添加)",
+    14: "允许其他人添加tag",
     15: "未知1",
     16: "跳转(番剧及影视av/bv->ep跳转)",
     17: "是否影视",
@@ -202,7 +209,7 @@ function getVideoInfo(param, msg, gid) {
                         desc,
                         attribute,
                         rights: {
-                            no_reprint
+                            //no_reprint
                         },
                         owner: {
                             mid,
@@ -260,8 +267,7 @@ UP：${name} 空间链接：https://space.bilibili.com/${mid}
 投稿类型: ${copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${his_rank!=0?"历史最高排行: "+his_rank:""}
 ${s!=""?"视频状态:  "+s:""}
 发布时间：${dayjs(new Date(pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
-视频简介：${desc} 
-视频动态: ${dynamic}
+${desc==dynamic?"视频简介/动态: "+desc:"视频简介： "+desc+"\n视频动态： "+dynamic}
 ${humanNum(view)}播放 , ${humanNum(videos)}个分P , ${humanNum(danmaku)}弹幕 , ${humanNum(reply)}评论 , 
 ${humanNum(favorite)}收藏 , ${humanNum(share)}分享 , ${humanNum(coin)}硬币 , ${humanNum(like)}点赞 
 https://www.bilibili.com/video/${bvid}`
@@ -845,4 +851,5 @@ result.cover 番剧封面
 result.title番剧标题
 result.evaluate 简介
 result.link 链接
+https://api.bilibili.com/pgc/review/user?media_id=
 */

@@ -13,7 +13,7 @@ import config from '../config';
 import logger2 from '../logger2';
 import dayjs from 'dayjs';
 import parseJSON from '../utils/parseJSON';
-
+//const param={aid:"2",bvid:"BV1xx411c7mD"}
 //不能反json格式的bili分享小程序(已修？)
 //https://api.bilibili.com/x/web-interface/view?bvid=BV1Kk4y1U7DW
 //https://api.bilibili.com/x/web-interface/view?aid=754167434
@@ -258,6 +258,16 @@ function getVideoInfo(param, msg, gid) {
                     }
                 }
                 logger2.info("1:" + s2);
+                let desc2 = desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
+                let dynamic2 = /(#.*?#)+/g.exec(dynamic); //获取动态话题标签
+                let dynamic3 = dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
+                //1、简介去掉链接并与动态进行比较（都去掉头尾空格），一样取简介；动态去掉动态话题标签与去掉链接的简介进行比较，一样加简介补回话题标签
+                /*if(desc2==dynamic.trim())
+                {
+                    console.log("233333333");
+                }
+                console.log(desc2);
+                console.log(dynamic);*/
                 return `${CQ.img(pic)}
 尺寸: 宽${width}px , 高${height}px
 av${aid}
@@ -267,7 +277,7 @@ UP：${name} 空间链接：https://space.bilibili.com/${mid}
 投稿类型: ${copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${his_rank!=0?"历史最高排行: "+his_rank:""}
 ${s!=""?"视频状态:  "+s:""}
 发布时间：${dayjs(new Date(pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
-${desc==dynamic?"视频简介/动态: "+desc:"视频简介： "+desc+"\n视频动态： "+dynamic}
+${desc2==dynamic.trim()?"视频简介/动态: "+desc:(desc2==dynamic3?"视频简介/动态: "+desc+"\n"+dynamic2:"视频简介： "+desc+"\n视频动态： "+dynamic)}
 ${humanNum(view)}播放 , ${humanNum(videos)}个分P , ${humanNum(danmaku)}弹幕 , ${humanNum(reply)}评论 , 
 ${humanNum(favorite)}收藏 , ${humanNum(share)}分享 , ${humanNum(coin)}硬币 , ${humanNum(like)}点赞 
 https://www.bilibili.com/video/${bvid}`

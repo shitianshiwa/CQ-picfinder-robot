@@ -1131,7 +1131,7 @@ async function start() {
         let t = new Date();
         logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + qiandaotupianjishu)
         qiandaotupianjishu = 0; //一天的签到总数
-        logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + chouqiantupianjishu)
+        logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日抽签总数：" + chouqiantupianjishu)
         chouqiantupianjishu = 0; //一天的抽签总数
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");

@@ -259,7 +259,8 @@ function getVideoInfo(param, msg, gid) {
                         break;
                     }
                 }
-                logger2.info("1:" + s2);
+                logger2.info("2:" + s2);
+                logger2.info(s);
                 let desc2 = desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
                 let dynamic2 = /(#.*?#)+/g.exec(dynamic); //获取动态话题标签
                 let dynamic3 = dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签

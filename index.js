@@ -1,3 +1,4 @@
+process.env.TZ='Asia/Shanghai';
 // 配置检查
 try {
     require('./config.json');

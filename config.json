@@ -120,7 +120,8 @@
         },
         "antiBiliMiniApp": {
             "despise": false,
-            "getVideoInfo": true
+            "getVideoInfo": true,
+            "sessdata":""
         }
     },
     "saucenaoHost": [

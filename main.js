@@ -1139,7 +1139,7 @@ async function start() {
             resolve(findSync('./tuku').length - 1);
         });
         logger2.info("签到图数：" + pic1);
-        logger2.info('每日累计次数清0' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
+        logger2.info('每日累计次数清0, ' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
     });
     //j1.cancel();
     function doOCR(context) {

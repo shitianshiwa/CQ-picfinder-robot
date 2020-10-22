@@ -19,6 +19,7 @@ import parseJSON from '../utils/parseJSON';
 //https://api.bilibili.com/x/web-interface/view?bvid=BV1Kk4y1U7DW
 //https://api.bilibili.com/x/web-interface/view?aid=754167434
 const setting = config.picfinder.antiBiliMiniApp;
+const sessdata = setting.sessdata;//用来得到获取视频信息的权限
 const cache = new NodeCache({
     stdTTL: 1 * 60
 });
@@ -176,128 +177,142 @@ let attr = {
     12: "私单",
     13: "限制地区(大多数番剧&影视)",
     14: "禁止其他人添加TAG",
-    15: "未知1",
+    15: "未知15",
     16: "跳转(番剧及影视av/bv->ep跳转)",
     17: "影视",
     18: "付费",
     19: "推送动态",
     20: "家长模式",
-    21: "限制游客和外链(部分视频未登录无法观看，且网页限制referer跳转，但存在白名单可能)",
-    22: "未知2",
-    23: "未知3",
+    21: "限制游客和外链(该视频未登录无法观看，且网页限制referer跳转。若可见,可能是加了白名单)",
+    22: "未知22",
+    23: "未知23",
     24: "合作视频",
-    25: "未知4",
-    26: "未知5",
-    27: "未知6",
-    28: "未知7",
+    25: "未知25",
+    26: "未知26",
+    27: "未知27",
+    28: "未知28",
     29: "互动视频"
 };
-
+//简略数值
 function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
 }
-
+//返回视频信息
 function getVideoInfo(param, msg, gid) {
+    //获取限制游客和外链需要加 head cookie加b站的 sessdata来获取
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
-    return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`)
-        .then(
-            ({
-                data: {
-                    data: {
-                        bvid,
-                        aid,
-                        videos,
-                        tid,
-                        tname,
-                        copyright,
-                        pic,
-                        title,
-                        pubdate,
-                        desc,
-                        attribute,
-                        rights: {
-                            //no_reprint
-                        },
-                        owner: {
-                            mid,
-                            name
-                        },
-                        stat: {
-                            view,
-                            danmaku,
-                            reply,
-                            favorite,
-                            coin,
-                            share,
-                            his_rank,
-                            like
-                        },
-                        dynamic,
-                        dimension: {
-                            width,
-                            height
-                        },
-                    },
-                },
-            }) => {
-                if (gid != null) {
-                    const cacheKeys = [`${gid}-${aid}`, `${gid}-${bvid}`]; //支持分群
-                    [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
-                }
-                let sum = 0;
-                let s = "";
-                let temp = attribute.toString(2); //正整数转成二进制字符串
-                logger2.info("attribute:" + attribute);
-                logger2.info("1:" + temp);
-                let s2 = "";
-                //console.log(Object.keys(attr).length);
-                //https://www.jianshu.com/p/59c3ca6041fe js 检查字典对象的长度
-                for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
-                    s2 += temp[i];
-                    if (temp[i] == "1") {
-                        if (s != "") {
-                            s = s + " , " + attr[sum];
-                        } else {
-                            s = s + attr[sum];
-                        }
-                    }
-                    if (sum < Object.keys(attr).length - 1) { //目前知道30种状态0-29
-                        sum++;
-                    } else {
-                        break;
-                    }
-                }
-                logger2.info("2:" + s2);
-                logger2.info(s);
-                let desc2 = desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
-                let dynamic2 = /(#.*?#)+/g.exec(dynamic); //获取动态话题标签
-                let dynamic3 = dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
-                //1、简介去掉链接并与动态进行比较（都去掉头尾空格），一样取简介；动态去掉动态话题标签与去掉链接的简介进行比较，一样加简介补回话题标签
-                /*if(desc2==dynamic.trim())
-                {
-                    console.log("233333333");
-                }
-                console.log(desc2);
-                console.log(dynamic);*/
-                return `${CQ.img(pic)}
-尺寸: 宽${width}px , 高${height}px
-av${aid}
-标题：${title}
-UP：${name} 空间链接：https://space.bilibili.com/${mid}
-视频分区：${fenqu[tid]!=null?fenqu[tid]:tname}
-投稿类型: ${copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${his_rank!=0?"历史最高排行: "+his_rank:""}
-${s!=""?"视频属性:  "+s:""}
-发布时间：${dayjs(new Date(pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
-${desc2==dynamic.trim()?"视频简介/动态: "+desc:(desc2==dynamic3?"视频简介/动态: "+desc+"\n"+dynamic2:"视频简介： "+desc+"\n视频动态： "+dynamic)}
-${humanNum(view)}播放 , ${humanNum(videos)}个分P , ${humanNum(danmaku)}弹幕 , ${humanNum(reply)}评论 , 
-${humanNum(favorite)}收藏 , ${humanNum(share)}分享 , ${humanNum(coin)}硬币 , ${humanNum(like)}点赞 
-https://www.bilibili.com/video/${bvid}`
+    //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
+    return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`, {
+            headers: {
+                'cookie': 'SESSDATA=' + sessdata + ';'
             }
-        )
+        })
+        .then(data => {
+            //logger2.info(data.data.code);
+            logger2.info(new Date().toString());
+            if (data.data.code != 0) {
+                switch (data.data.code) {
+                    case -400:
+                        return "请求错误";
+                    case -403:
+                        return "访问权限不足";
+                    case -404:
+                        return "找不到视频信息";
+                    case 62002:
+                        return "稿件不可见";
+                    default:
+                        logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
+                        return null;
+                }
+            }
+            let data1 = data.data.data;
+            let data2 = {
+                bvid: data1.bvid,
+                aid: data1.aid,
+                videos: data1.videos,
+                tid: data1.tid,
+                tname: data1.tname,
+                copyright: data1.copyright,
+                pic: data1.pic,
+                title: data1.title,
+                pubdate: data1.pubdate,
+                desc: data1.desc,
+                attribute: data1.attribute,
+                //rights:data.rights.no_reprint,
+                //owner
+                mid: data1.owner.mid,
+                name: data1.owner.name,
+                //stat
+                view: data1.stat.view,
+                danmaku: data1.stat.danmaku,
+                reply: data1.stat.reply,
+                favorite: data1.stat.favorite,
+                coin: data1.stat.coin,
+                share: data1.stat.share,
+                his_rank: data1.stat.his_rank,
+                like: data1.stat.like,
+                dynamic: data1.dynamic,
+                //dimension
+                width: data1.dimension.width,
+                height: data1.dimension.height
+            }
+            if (gid != null) {
+                const cacheKeys = [`${gid}-${data2.aid}`, `${gid}-${data2.bvid}`]; //支持分群
+                [data2.aid, data2.bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+            }
+            let sum = 0;
+            let s = "";
+            let temp = data2.attribute.toString(2); //正整数转成二进制字符串
+            logger2.info("attribute:" + data2.attribute);
+            logger2.info("1:" + temp);
+            let s2 = "";
+            //console.log(Object.keys(attr).length);
+            //https://www.jianshu.com/p/59c3ca6041fe js 检查字典对象的长度
+            for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
+                s2 += temp[i];
+                if (temp[i] == "1") {
+                    if (s != "") {
+                        s = s + " , " + attr[sum];
+                    } else {
+                        s = s + attr[sum];
+                    }
+                }
+                if (sum < Object.keys(attr).length - 1) { //目前知道30种状态0-29
+                    sum++;
+                } else {
+                    break;
+                }
+            }
+            logger2.info("2:" + s2);
+            logger2.info(s);
+            let desc2 = data2.desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
+            let dynamic2 = /(#.*?#)+/g.exec(data2.dynamic); //获取动态话题标签
+            let dynamic3 = data2.dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
+            //1、简介去掉链接并与动态进行比较（都去掉头尾空格），一样取简介；动态去掉动态话题标签与去掉链接的简介进行比较，一样加简介补回话题标签
+            /*if(desc2==dynamic.trim())
+            {
+                console.log("233333333");
+            }
+            console.log(desc2);
+            console.log(dynamic);*/
+            return `${CQ.img(data2.pic)}
+尺寸: 宽${data2.width}px , 高${data2.height}px
+av${data2.aid}
+标题：${data2.title}
+UP：${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
+视频分区：${fenqu[data2.tid]!=null?fenqu[data2.tid]:data2.tname}
+投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}
+${s!=""?"视频属性:  "+s:""}
+发布时间：${dayjs(new Date(data2.pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
+${desc2==data2.dynamic.trim()?"[视频简介/动态]: "+data2.desc:(desc2==dynamic3?"[视频简介/动态]: "+data2.desc+"\n"+dynamic2:"[视频简介]： "+data2.desc+"\n[视频动态]： "+data2.dynamic)}
+${humanNum(data2.view)}播放 , ${humanNum(data2.videos)}个分P , ${humanNum(data2.danmaku)}弹幕 , ${humanNum(data2.reply)}评论 , 
+${humanNum(data2.favorite)}收藏 , ${humanNum(data2.share)}分享 , ${humanNum(data2.coin)}硬币 , ${humanNum(data2.like)}点赞 
+https://www.bilibili.com/video/${data2.bvid}`
+        })
         .catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili video info ${param},${msg}`);
+            logError(`${new Date().toString()} [error] get bilibili video info ${param},${msg}`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili video info ${param}:` + e);
+            logger2.error(`${new Date().toString()} [error] get bilibili video info ${param}:` + e);
             return null;
         });
 }
@@ -333,7 +348,7 @@ https://www.bilibili.com/video/${bvid}`;
         }
     );
 }
-
+//链接转av和bv号
 function getAvBvFromNormalLink(link) {
     if (typeof link !== 'string') return null;
     const search = /bilibili\.com\/video\/(?:[Aa][Vv]([0-9]+)|([Bb][Vv][0-9a-zA-Z]+))/.exec(link);
@@ -347,21 +362,53 @@ function getAvBvFromNormalLink(link) {
     }
     return null;
 }
-
+//链接转cv号
+function getCvFromNormalLink(link) {
+    if (typeof link !== 'string') return null;
+    const search = /bilibili\.com\/read\/cv([0-9]+)/.exec(link);
+    //const search = link.match(/bilibili\.com\/video\/(?:[Aa][Vv]([0-9]+)|([Bb][Vv][0-9a-zA-Z]+))/);
+    if (search != null) {
+        return search[1];
+    }
+    return null;
+}
+//得到b站短链接转长链接等到av，bv号
 function getAvBvFromShortLink(shortLink) {
+    logger2.info("avbvshortLink: " + shortLink);
     return head(shortLink, {
             maxRedirects: 0,
             validateStatus: status => status >= 200 && status < 400
         })
-        .then(ret => getAvBvFromNormalLink(ret.headers.location))
+        .then(ret => {
+            logger2.info(ret.headers.location);
+            return getAvBvFromNormalLink(ret.headers.location)
+        })
         .catch(e => {
-            logError(`${new Date().toLocaleString()} [error] head request bilibili short link ${shortLink}`);
+            logError(`${new Date().toString()} [error] head request bilibili short link ${shortLink}`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] head request bilibili short link ${shortLink}:` + e);
+            logger2.error(`${new Date().toString()} [error] head request bilibili short link ${shortLink}:` + e);
             return null;
         });
 }
-
+//得到b站短链接转长链接等到cv号
+function getCvFromShortLink(shortLink) {
+    logger2.info("cvshortLink: " + shortLink);
+    return head(shortLink, {
+            maxRedirects: 0,
+            validateStatus: status => status >= 200 && status < 400
+        })
+        .then(ret => {
+            logger2.info(ret.headers.location);
+            return getCvFromNormalLink(ret.headers.location)
+        })
+        .catch(e => {
+            logError(`${new Date().toString()} [error] head request bilibili cv short link ${shortLink}`);
+            logError(e);
+            logger2.error(`${new Date().toString()} [error] head request bilibili cv short link ${shortLink}:` + e);
+            return null;
+        });
+}
+//得到番剧/影视信息
 function getMdInfo(md, gid) {
     if (md != null) {
         logger2.info(`https://api.bilibili.com/pgc/review/user?media_id=${md}`);
@@ -401,15 +448,15 @@ function getMdInfo(md, gid) {
 ${share_url}`
             }
         ).catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili media info1`);
+            logError(`${new Date().toString()} [error] get bilibili media info1`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili media info1`);
+            logger2.error(`${new Date().toString()} [error] get bilibili media info1`);
             return getMdInfo2(md, gid);
         });
     }
     return null;
 }
-
+//得到专栏信息
 function getCvInfo(cv, gid) {
     if (cv != null) {
         logger2.info(`https://api.bilibili.com/x/article/viewinfo?id=${cv}`);
@@ -431,15 +478,15 @@ function getCvInfo(cv, gid) {
 链接：https://www.bilibili.com/read/cv${cv}`
             }
         ).catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili cv info`);
+            logError(`${new Date().toString()} [error] get bilibili cv info`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili cv info`);
+            logger2.error(`${new Date().toString()} [error] get bilibili cv info`);
             return null;
         });
     }
     return null;
 }
-
+//得到专栏信息出错后再尝试
 function getMdInfo2(md, gid) {
     if (md != null) {
         logger2.info(`https://api.bilibili.com/pgc/review/user?media_id=${md}`);
@@ -474,15 +521,15 @@ function getMdInfo2(md, gid) {
 ${share_url}`
             }
         ).catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili media info2`);
+            logError(`${new Date().toString()} [error] get bilibili media info2`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili media info2`);
+            logger2.error(`${new Date().toString()} [error] get bilibili media info2`);
             return null;
         });
     }
     return null;
 }
-
+//得到番剧/影视mid号
 function getmedia_id(ssep) {
     let season_id = /ss([0-9]+)/.exec(ssep);
     let ep_id = /ep([0-9]+)/.exec(ssep);
@@ -496,9 +543,9 @@ function getmedia_id(ssep) {
                 return data.data.result.media_id;
             }
         ).catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili mediaid season_id`);
+            logError(`${new Date().toString()} [error] get bilibili mediaid season_id`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili mediaid season_id`);
+            logger2.error(`${new Date().toString()} [error] get bilibili mediaid season_id`);
             return null;
         });
     } else if (ep_id) {
@@ -507,14 +554,14 @@ function getmedia_id(ssep) {
             //logger2.info(data.data.result.media_id);
             return data.data.result.media_id;
         }).catch(e => {
-            logError(`${new Date().toLocaleString()} [error] get bilibili mediaid ep_id`);
+            logError(`${new Date().toString()} [error] get bilibili mediaid ep_id`);
             logError(e);
-            logger2.error(`${new Date().toLocaleString()} [error] get bilibili mediaid ep_id`);
+            logger2.error(`${new Date().toString()} [error] get bilibili mediaid ep_id`);
             return null;
         });
     }
 }
-
+//获取av，bv号
 async function getAvBvFromMsg(msg) {
     let search;
     if ((search = getAvBvFromNormalLink(msg))) return search;
@@ -522,7 +569,15 @@ async function getAvBvFromMsg(msg) {
     if ((search = /(av|AV|bv|BV)[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
     return null;
 }
-
+//获取cv号
+async function getCvFromMsg(msg) {
+    let search;
+    if ((search = /bilibili\.com\/read\/cv([0-9]+)/.exec(msg))) return search[1]; //专栏
+    if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://${search[0]}`);
+    if ((search = /(cv|CV)[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
+    return null;
+}
+//获取mid号
 function getMdFromMsg(msg) {
     let search;
     if ((search = /bilibili\.com\/bangumi\/media\/md([0-9]+)/.exec(msg))) {
@@ -534,6 +589,8 @@ function getMdFromMsg(msg) {
     if ((search = /(b23|acg)\.tv\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return getmedia_id(search[2]);
     return null;
 }
+
+
 //直接获取链接，所以无视小程序变化
 async function antiBiliMiniApp(context, replyFunc) {
     const msg = context.message;
@@ -574,10 +631,12 @@ async function antiBiliMiniApp(context, replyFunc) {
         //logger2.info("2333333333333");
     }
     if (setting.getVideoInfo && xiaochengxu == true /*&& msg.indexOf('视频') == -1*/ && msg.indexOf('CQ:video') == -1) {
-        const param = await getAvBvFromMsg(qqdocurl || CQ.unescape(msg));
+        const param = await getAvBvFromMsg(qqdocurl || CQ.unescape(msg)); //视频
         const param2 = await getMdFromMsg(qqdocurl || CQ.unescape(msg)); //番剧类
-        const param3 = /bilibili\.com\/read\/cv([0-9]+)/.exec(qqdocurl || CQ.unescape(msg)); //专栏
-        //logger2.info(param);//可能有null存在
+        const param3 = await getCvFromMsg(qqdocurl || CQ.unescape(msg)); //专栏
+        //logger2.info(param); //可能有null存在
+        //logger2.info(param2); //可能有null存在
+        //logger2.info(param3); //可能有null存在
         if (param) {
             const {
                 aid,
@@ -591,7 +650,7 @@ async function antiBiliMiniApp(context, replyFunc) {
                 [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
             const reply = await getVideoInfo(param, msg, gid);
-            if (reply) {
+            if (reply != null) {
                 replyFunc(context, reply);
                 return;
             }
@@ -610,13 +669,14 @@ async function antiBiliMiniApp(context, replyFunc) {
             }
         } else if (param3 != null) {
             if (gid) {
-                let cacheKeys = [`${gid}-${param3[1]}`]; //支持分群
+                let cacheKeys = [`${gid}-cv${param3}`]; //支持分群
+                //console.log(cacheKeys);
                 if (cacheKeys.some(key => cache.has(key))) {
                     return;
                 }
-                [param3[1]].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+                [param3].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
-            let temp = await getCvInfo(param3[1], gid);
+            let temp = await getCvInfo(param3, gid);
             if (temp != null) {
                 replyFunc(context, temp);
                 return;

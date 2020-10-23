@@ -19,7 +19,7 @@ import parseJSON from '../utils/parseJSON';
 //https://api.bilibili.com/x/web-interface/view?bvid=BV1Kk4y1U7DW
 //https://api.bilibili.com/x/web-interface/view?aid=754167434
 const setting = config.picfinder.antiBiliMiniApp;
-const sessdata = setting.sessdata;//用来得到获取视频信息的权限
+const sessdata = setting.sessdata; //用来得到获取视频信息的权限
 const cache = new NodeCache({
     stdTTL: 1 * 60
 });
@@ -304,7 +304,7 @@ UP：${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
 投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}
 ${s!=""?"视频属性:  "+s:""}
 发布时间：${dayjs(new Date(data2.pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
-${desc2==data2.dynamic.trim()?"[视频简介/动态]: "+data2.desc:(desc2==dynamic3?"[视频简介/动态]: "+data2.desc+"\n"+dynamic2:"[视频简介]： "+data2.desc+"\n[视频动态]： "+data2.dynamic)}
+${desc2==data2.dynamic.trim()||data2.dynamic==""?"[视频简介/动态]: "+data2.desc:(desc2==dynamic3?"[视频简介/动态]: "+data2.desc+"\n"+dynamic2:"[视频简介]： "+data2.desc+"\n[视频动态]： "+data2.dynamic)}
 ${humanNum(data2.view)}播放 , ${humanNum(data2.videos)}个分P , ${humanNum(data2.danmaku)}弹幕 , ${humanNum(data2.reply)}评论 , 
 ${humanNum(data2.favorite)}收藏 , ${humanNum(data2.share)}分享 , ${humanNum(data2.coin)}硬币 , ${humanNum(data2.like)}点赞 
 https://www.bilibili.com/video/${data2.bvid}`

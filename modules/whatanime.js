@@ -75,6 +75,7 @@ async function doSearch(imgURL, debug = false) {
 
             await getAnimeInfo(anilistID)
                 .then(info => {
+                    //logger2.info(JSON.stringify(info));
                     type = info.type + ' - ' + info.format; //类型
                     let sd = info.startDate;
                     start = sd.year + '-' + sd.month + '-' + sd.day; //开始日期
@@ -89,7 +90,7 @@ async function doSearch(imgURL, debug = false) {
                         appendMsg(`WhatAnime[${hostIndex}]：注意，${limit_ttl}秒内搜索次数仅剩${limit}次`);
                     }
                     if (isR18) {
-                        appendMsg(`发现是r18动画封面简略图，不予显示`);
+                        appendMsg(`R18注意！因为是r18动画封面简略图，不予显示`);
                     } else if (similarity >= 90) {
                         appendMsg(img, false);
                     } else {
@@ -107,8 +108,12 @@ async function doSearch(imgURL, debug = false) {
                     appendMsg(`类型：${type}`);
                     appendMsg(`开播：${start}`);
                     if (end.length > 0) appendMsg(`完结：${end}`);
-                    if (isR18) appendMsg('R18注意！');
-
+                    //if (isR18) appendMsg('R18注意！');
+                    if (!isR18)
+                    {
+                        appendMsg('动画介绍(英文)：'+info.siteUrl);    
+                        appendMsg('动画官网：'+info.externalLinks[0].url);  
+                    }
                     success = true;
                 })
                 .catch(e => {
@@ -182,7 +187,7 @@ async function getSearchResult(imgURL, host) {
                 logger2.error(`${getTime()}[error] whatanime ${e}`);
             } else throw e;
         });
-
+    //logger2.info(JSON.stringify(json));
     return json;
 }
 

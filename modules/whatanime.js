@@ -114,7 +114,7 @@ async function doSearch(imgURL, debug = false) {
                         let num = 1;
                         for (let i = 0; i < info.externalLinks.length; i++) {
                             if (info.externalLinks[i].site == "Official Site") {
-                                appendMsg('动画官网' + num > 1 ? num : "" + '：' + info.externalLinks[i].url);
+                                appendMsg('动画官网' + (num > 1 ? num : "") + '：' + info.externalLinks[i].url);
                                 num++;
                             }
                             if (info.externalLinks[i].site == "Twitter") {

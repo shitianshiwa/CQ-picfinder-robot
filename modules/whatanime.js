@@ -109,10 +109,18 @@ async function doSearch(imgURL, debug = false) {
                     appendMsg(`开播：${start}`);
                     if (end.length > 0) appendMsg(`完结：${end}`);
                     //if (isR18) appendMsg('R18注意！');
-                    if (!isR18)
-                    {
-                        appendMsg('动画介绍(英文)：'+info.siteUrl);    
-                        appendMsg('动画官网：'+info.externalLinks[0].url);  
+                    if (!isR18) {
+                        appendMsg('动画介绍(英文)：' + info.siteUrl);
+                        let num = 1;
+                        for (let i = 0; i < info.externalLinks.length; i++) {
+                            if (info.externalLinks[i].site == "Official Site") {
+                                appendMsg('动画官网' + num > 1 ? num : "" + '：' + info.externalLinks[i].url);
+                                num++;
+                            }
+                            if (info.externalLinks[i].site == "Twitter") {
+                                appendMsg('动画官推：' + info.externalLinks[i].url);
+                            }
+                        }
                     }
                     success = true;
                 })

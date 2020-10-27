@@ -59,7 +59,10 @@ const signdelay = setting.sign.delay * 1000;
 var qiandaotupianjishu = 0; //签到总数限制
 var chouqiantupianjishu = 0; //抽签总数限制
 const cache2 = new NodeCache({
-    stdTTL: 1 * 2//秒
+    stdTTL: 1 * 180 //秒
+});
+const cache3 = new NodeCache({
+    stdTTL: 1 * 2 //秒
 });
 //初始化
 var pic1 = -1;
@@ -96,7 +99,7 @@ function findSync(startPath) {
 async function start() {
     if (setting.akhr.enable) Akhr.init().catch(console.error);
     if (setting.reminder.enable) rmdInit(replyMsg);
-    pic1 = await new Promise(function(resolve, reject) {
+    pic1 = await new Promise(function (resolve, reject) {
         resolve(findSync('./tuku').length - 1);
     });
 
@@ -346,11 +349,13 @@ async function start() {
             let uid = context.user_id;
             if (uid) {
                 let cacheKeys = [`${uid}-${true}`]; //防御私聊狂刷
-                if (cacheKeys.some(key => cache2.has(key))) {
+                if (cacheKeys.some(key => cache3.has(key))) {
                     return;
                 } else {
-                    [true].forEach((id, i) => id && cache2.set(cacheKeys[i], true));
+                    [true].forEach((id, i) => id && cache3.set(cacheKeys[i], true));
                 }
+            } else {
+                return;
             }
             if (commonHandle(context)) {
                 //e.stopPropagation();
@@ -468,22 +473,27 @@ async function start() {
 
     }
 
-
     //群组消息处理
     var qiandaoxianzhi = false;
-
 
     function groupMsg(context) {
         if (context.message_type == "group") {
             //logger2.info(JSON.stringify(context));
             let uid = context.user_id;
+            let cacheKeys = `${uid}`; //防御群聊狂刷，计数制
+            let cacheKeys2 = [`${uid}-${true}`]; //防御群聊狂刷，延时2秒
             if (uid) {
-                let cacheKeys = [`${uid}-${true}`]; //防御群聊狂刷
-                if (cacheKeys.some(key => cache2.has(key))) {
+                if ( /*cache2.has(cacheKeys)*/ cache2.get(cacheKeys) == 0) {
+                    return;
+                }
+                if (cacheKeys2.some(key => cache3.has(key))) {
                     return;
                 } else {
-                    [true].forEach((id, i) => id && cache2.set(cacheKeys[i], true));
+                    [true].forEach((id, i) => id && cache3.set(cacheKeys2[i], true));
                 }
+                //logger2.info(uid + ": " + cache2.get(cacheKeys));
+            } else {
+                return;
             }
             if (commonHandle(context)) {
                 //e.stopPropagation();
@@ -491,11 +501,13 @@ async function start() {
             }
             if (context.message == '。搜图') {
                 //e.stopPropagation();
+                cache(uid, true);
                 returnmsg(context, 0);
                 return;
             }
             if (context.message == 'ocr' || context.message == 'OCR') {
                 //e.stopPropagation();
+                cache(uid, true);
                 returnmsg(context, 1);
                 return;
             }
@@ -518,6 +530,7 @@ async function start() {
                         clearInterval(t);
                         qiandaoxianzhi = false;
                     }, signdelay);
+                    cache(uid, true);
                     let temp = qiandaotu.getItem('jishu');
                     let pictemp = null;
                     if (pic1 != -1) {
@@ -569,6 +582,7 @@ async function start() {
                         clearInterval(t);
                         qiandaoxianzhi = false;
                     }, signdelay);
+                    cache(uid, true);
                     let temp = getIntRand(pic1);
                     let pictemp = null;
                     if (temp != -1) {
@@ -596,6 +610,7 @@ async function start() {
             if (searchModeOnReg.exec(context.message)) {
                 //进入搜图
                 //e.stopPropagation();
+                cache(uid, true);
                 if (
                     logger.smSwitch(group_id, user_id, true, () => {
                         replyMsg(context, setting.replys.searchModeTimeout, true);
@@ -606,6 +621,7 @@ async function start() {
             } else if (searchModeOffReg.exec(context.message)) {
                 //e.stopPropagation();
                 //退出搜图
+                cache(uid, true);
                 if (logger.smSwitch(group_id, user_id, false)) replyMsg(context, setting.replys.searchModeOff, true);
                 else replyMsg(context, setting.replys.searchModeAlreadyOff, true);
             }
@@ -641,6 +657,7 @@ async function start() {
             } else if (setting.repeat.enable) {
                 //复读（
                 //随机复读，rptLog得到当前复读次数
+                cache(uid, true);
                 if (logger.rptLog(group_id, user_id, context.message) >= setting.repeat.times && getRand() <= setting.repeat.probability) {
                     logger.rptDone(group_id);
                     //延迟2s后复读
@@ -659,6 +676,17 @@ async function start() {
         }
     }
 
+    function cache(uid, cache = false) {
+        if (cache == true) {
+            if (cache2.get(uid) == undefined) {
+                cache2.set(uid, 20);
+            } else {
+                let temp = cache2.get(uid) - 1;
+                cache2.set(uid, temp);
+            }
+            logger2.info(uid + ": " + cache2.get(uid));
+        }
+    }
     //通用信息发送
     function returnmsg(context, xuanze) {
         //console.log(context);
@@ -785,7 +813,7 @@ async function start() {
             }
         }
         //console.log("本次搜索图片数：" + tupianshu);
-        var t = setInterval(async() => {
+        var t = setInterval(async () => {
             if (tupianshu > 0) {
                 let img = imgs[imgs.length - tupianshu];
                 //console.log(tupianshu);
@@ -969,7 +997,7 @@ async function start() {
                                 }));
                                 let temp = parseInt(ascii2dday.getItem('ascii2d'));
                                 temp++;
-                                await new Promise(function(resolve, reject) {
+                                await new Promise(function (resolve, reject) {
                                     resolve(ascii2dday.setItem('ascii2d', temp));
                                 });
                                 if (asErr) {
@@ -1127,7 +1155,7 @@ async function start() {
     */
 
 
-    var j1 = schedule.scheduleJob('0 0 0 * * *', async function() { //每天0时0分0秒清0。定时器
+    var j1 = schedule.scheduleJob('0 0 0 * * *', async function () { //每天0时0分0秒清0。定时器
         let t = new Date();
         logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + qiandaotupianjishu)
         qiandaotupianjishu = 0; //一天的签到总数
@@ -1135,7 +1163,7 @@ async function start() {
         chouqiantupianjishu = 0; //一天的抽签总数
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
-        pic1 = await new Promise(function(resolve, reject) {
+        pic1 = await new Promise(function (resolve, reject) {
             resolve(findSync('./tuku').length - 1);
         });
         logger2.info("签到图数：" + pic1);

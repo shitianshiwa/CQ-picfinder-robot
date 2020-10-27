@@ -183,7 +183,7 @@ let attr = {
     18: "付费",
     19: "推送动态",
     20: "家长模式",
-    21: "限制游客和外链(该视频未登录无法观看，且网页限制referer跳转。若可见，可能是加了白名单)",
+    21: "禁止游客访问和外链跳转(该视频未登录无法观看，且网页限制referer跳转)", //若可见，可能是加了白名单
     22: "未知22",
     23: "未知23",
     24: "合作视频",
@@ -198,13 +198,13 @@ function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
 }
 //返回视频信息
-function getVideoInfo(param, msg, gid) {
+function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
     //获取限制游客和外链需要加 head cookie加b站的 sessdata来获取
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
     return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`, {
             headers: {
-                'cookie': 'SESSDATA=' + sessdata + ';'
+                'cookie': 'SESSDATA=' + sessdata2 + ';'
             }
         })
         .then(data => {
@@ -215,14 +215,18 @@ function getVideoInfo(param, msg, gid) {
                     case -400:
                         return "请求错误";
                     case -403:
-                        return "访问权限不足";
-                    case -404:
-                        return "找不到视频信息";
-                    case 62002:
-                        return "稿件不可见";
-                    default:
-                        logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
-                        return null;
+                        if (two == false) {
+                            return getVideoInfo(param, msg, gid, sessdata, true);
+                        } else {
+                            return "访问权限不足";
+                        }
+                        case -404:
+                            return "找不到视频信息";
+                        case 62002:
+                            return "稿件不可见";
+                        default:
+                            logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
+                            return null;
                 }
             }
             let data1 = data.data.data;
@@ -272,7 +276,15 @@ function getVideoInfo(param, msg, gid) {
                 s2 += temp[i];
                 if (temp[i] == "1") {
                     if (s != "") {
-                        s = s + " , " + attr[sum];
+                        if (sum == 21) {
+                            if (two == false) {
+                                s = s + " , " + "禁止外链跳转(网页限制referer跳转)";
+                            } else {
+                                s = s + " , " + attr[sum];
+                            }
+                        } else {
+                            s = s + " , " + attr[sum];
+                        }
                     } else {
                         s = s + attr[sum];
                     }

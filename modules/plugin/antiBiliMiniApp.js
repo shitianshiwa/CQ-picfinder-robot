@@ -215,18 +215,18 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                     case -400:
                         return "请求错误";
                     case -403:
-                        if (two == false) {
-                            return getVideoInfo(param, msg, gid, sessdata, true);
-                        } else {
-                            return "访问权限不足";
-                        }
-                        case -404:
-                            return "找不到视频信息";
-                        case 62002:
-                            return "稿件不可见";
-                        default:
-                            logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
-                            return null;
+                        //if (two == false) {
+                        //return getVideoInfo(param, msg, gid, sessdata, true);
+                        //} else {
+                        return "访问权限不足";
+                        //}
+                    case -404:
+                        return "找不到视频信息";
+                    case 62002:
+                        return "稿件不可见";
+                    default:
+                        logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
+                        return null;
                 }
             }
             let data1 = data.data.data;
@@ -241,7 +241,7 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                 title: data1.title,
                 pubdate: data1.pubdate,
                 desc: data1.desc,
-                attribute: data1.attribute,
+                //attribute: data1.attribute,
                 //rights:data.rights.no_reprint,
                 //owner
                 mid: data1.owner.mid,
@@ -264,15 +264,15 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                 const cacheKeys = [`${gid}-${data2.aid}`, `${gid}-${data2.bvid}`]; //支持分群
                 [data2.aid, data2.bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
-            let sum = 0;
+            //let sum = 0;
             let s = "";
-            let temp = data2.attribute.toString(2); //正整数转成二进制字符串
-            logger2.info("attribute:" + data2.attribute);
-            logger2.info("1:" + temp);
-            let s2 = "";
+            //let temp = "0"; //data2.attribute.toString(2); //正整数转成二进制字符串
+            //logger2.info("attribute:" + data2.attribute);
+            //logger2.info("1:" + temp);
+            //let s2 = "";
             //console.log(Object.keys(attr).length);
             //https://www.jianshu.com/p/59c3ca6041fe js 检查字典对象的长度
-            for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
+            /*for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
                 s2 += temp[i];
                 if (temp[i] == "1") {
                     if (s != "") {
@@ -294,9 +294,9 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                 } else {
                     break;
                 }
-            }
-            logger2.info("2:" + s2);
-            logger2.info(s);
+            }*/
+            //logger2.info("2:" + s2);
+            //logger2.info(s);
             let desc2 = data2.desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
             let dynamic2 = /(#.*?#)+/g.exec(data2.dynamic); //获取动态话题标签
             let dynamic3 = data2.dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
@@ -313,8 +313,7 @@ av${data2.aid}
 标题：${data2.title}
 UP：${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
 视频分区：${fenqu[data2.tid]!=null?fenqu[data2.tid]:data2.tname}
-投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}
-${s!=""?"视频属性:  "+s:""}
+投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}${s!=""?"视频属性:  "+s:""}
 发布时间：${dayjs(new Date(data2.pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
 ${desc2==data2.dynamic.trim()||data2.dynamic==""?"[视频简介/动态]: "+data2.desc:(desc2==dynamic3?"[视频简介/动态]: "+data2.desc+"\n"+dynamic2:"[视频简介]： "+data2.desc+"\n[视频动态]： "+data2.dynamic)}
 ${humanNum(data2.view)}播放 , ${humanNum(data2.videos)}个分P , ${humanNum(data2.danmaku)}弹幕 , ${humanNum(data2.reply)}评论 , 

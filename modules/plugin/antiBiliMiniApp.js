@@ -198,7 +198,7 @@ function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
 }
 //返回视频信息
-function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
+function getVideoInfo(param, msg, gid, sessdata2 = "", two = false,s="") {
     //获取限制游客和外链需要加 head cookie加b站的 sessdata来获取
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
@@ -215,18 +215,18 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                     case -400:
                         return "请求错误";
                     case -403:
-                        //if (two == false) {
-                        //return getVideoInfo(param, msg, gid, sessdata, true);
-                        //} else {
-                        return "访问权限不足";
-                        //}
-                    case -404:
-                        return "找不到视频信息";
-                    case 62002:
-                        return "稿件不可见";
-                    default:
-                        logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
-                        return null;
+                        if (two == false) {
+                            return getVideoInfo(param, msg, gid, sessdata, true,"禁止游客访问和外链跳转(该视频未登录无法观看，且网页限制referer跳转)");
+                        } else {
+                            return "访问权限不足";
+                        }
+                        case -404:
+                            return "找不到视频信息";
+                        case 62002:
+                            return "稿件不可见";
+                        default:
+                            logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
+                            return null;
                 }
             }
             let data1 = data.data.data;
@@ -265,7 +265,7 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false) {
                 [data2.aid, data2.bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
             //let sum = 0;
-            let s = "";
+            //let s = "";
             //let temp = "0"; //data2.attribute.toString(2); //正整数转成二进制字符串
             //logger2.info("attribute:" + data2.attribute);
             //logger2.info("1:" + temp);
@@ -313,7 +313,7 @@ av${data2.aid}
 标题：${data2.title}
 UP：${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
 视频分区：${fenqu[data2.tid]!=null?fenqu[data2.tid]:data2.tname}
-投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}${s!=""?"视频属性:  "+s:""}
+投稿类型: ${data2.copyright==1?" 自制"/*+(no_reprint==1?" 禁止转载":"")*/:" 转载"}  ${data2.his_rank!=0?"历史最高排行: "+data2.his_rank:""}${s!=""?"\n视频属性:  "+s:""}
 发布时间：${dayjs(new Date(data2.pubdate*1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0","星期天")}
 ${desc2==data2.dynamic.trim()||data2.dynamic==""?"[视频简介/动态]: "+data2.desc:(desc2==dynamic3?"[视频简介/动态]: "+data2.desc+"\n"+dynamic2:"[视频简介]： "+data2.desc+"\n[视频动态]： "+data2.dynamic)}
 ${humanNum(data2.view)}播放 , ${humanNum(data2.videos)}个分P , ${humanNum(data2.danmaku)}弹幕 , ${humanNum(data2.reply)}评论 , 

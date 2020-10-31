@@ -301,7 +301,7 @@ async function start() {
                 bot('get_version_info').then(data2 => {
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version)
-                    replyMsg(context, "goc-qhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
+                    replyMsg(context, "go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
                 }).catch(err => {
                     logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
                 });

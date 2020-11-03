@@ -807,6 +807,7 @@ async function start() {
         } else if (context.message_type == "private") {
             for (i = 0; i < whiteqq2.length; i++) {
                 if (context.user_id == whiteqq2[i]) {
+                    whitegroup = true;
                     whiteqq = true;
                     break;
                 }

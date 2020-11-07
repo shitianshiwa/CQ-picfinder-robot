@@ -415,7 +415,11 @@ async function start() {
                                     clearTimeout(t);
                                     privateqq[context.user_id.toString()] = null;
                                 }, 60000);
-                                replyMsg(context, setting.replys.default);
+                                if (context.sub_type == "friend") {
+                                    replyMsg(context, setting.replys.default);
+                                } else {
+                                    replyMsg(context, setting.replys.bangzhuzhiling0);
+                                }
                             }
                         }
                     }
@@ -439,7 +443,11 @@ async function start() {
                                 clearTimeout(t);
                                 privateqq[context.user_id.toString()] = null;
                             }, 60000);
-                            replyMsg(context, setting.replys.default);
+                            if (context.sub_type == "friend") {
+                                replyMsg(context, setting.replys.default);
+                            } else {
+                                replyMsg(context, setting.replys.bangzhuzhiling0);
+                            }
                         }
                     }
                 }

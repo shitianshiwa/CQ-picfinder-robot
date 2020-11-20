@@ -249,9 +249,27 @@ async function start() {
     }
 
     //连接相关监听
-    bot('send_private_msg', {
-        user_id: setting.admin,
-        message: `搜图插件已启动`,
+    bot('get_status').then(data1 => {
+        bot('get_version_info').then(data2 => {
+            let stats = `
+接受包: ${data1.stat.packet_received}
+发送包: ${data1.stat.packet_sent}
+丢包: ${data1.stat.packet_lost}
+接受消息: ${data1.stat.message_received}
+发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times}
+丢失: ${data1.stat.lost_times}`;
+            logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
+            logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
+            bot('send_private_msg', {
+                user_id: setting.admin,
+                message: "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats
+            });
+        }).catch(err => {
+            logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
+        });
+    }).catch(err => {
+        logger.error(new Date().toString() + "get_version_info:" + JSON.stringify(err));
     });
     /*.then(data => {}).catch(err => {
             logger2.error(new Date().toString() + "," + err);
@@ -295,13 +313,22 @@ async function start() {
             /*
             {"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null}
 {"coolq_directory":"/home/user/coolq/gocqhttp","coolq_edition":"pro","go-cqhttp":true,"plugin_build_configuration":"release","plugin_build_number":99,"plugin_version":"4.15.0","runtime_os":"linux","runtime_version":"go1.14.7"}
+{"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null,"stat":{"packet_received":66,"packet_sent":62,"packet_lost":2,"message_received":0,"message_sent":1,"disconnect_times":0,"lost_times":0}},"retcode":0,"status":"ok"}
 
              */
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
+                    let stats = `
+接受包: ${data1.stat.packet_received}
+发送包: ${data1.stat.packet_sent}
+丢包: ${data1.stat.packet_lost}
+接受消息: ${data1.stat.message_received}
+发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times}
+丢失: ${data1.stat.lost_times}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
-                    logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version)
-                    replyMsg(context, "go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
+                    logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
+                    replyMsg(context, "go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats);
                 }).catch(err => {
                     logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
                 });
@@ -541,11 +568,12 @@ async function start() {
                     cache(uid, true);
                     let temp = qiandaotu.getItem('jishu');
                     let pictemp = null;
+                    let temp2=0;
                     if (pic1 != -1) {
                         if (temp == null || parseInt(temp) == pic1) {
                             qiandaotu.setItem('jishu', "0");
                         } else {
-                            let temp2 = parseInt(qiandaotu.getItem('jishu'));
+                            temp2 = parseInt(qiandaotu.getItem('jishu'));
                             temp2++;
                             qiandaotu.setItem('jishu', temp2);
                         }
@@ -557,14 +585,14 @@ async function start() {
                     if (qiandaotupianjishu <= qiandaoxianzhishu || qiandaoxianzhishu == -1) { //签到总数限制
                         if (logger.canSign(context.user_id)) {
                             if (pictemp != null) {
-                                replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + `\n[CQ:image,file=file:///${pictemp}]`)
+                                replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + `\n[CQ:image,file=file:///${pictemp}]\n`+temp2)
                             } else {
                                 replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign);
                             }
                             return true;
                         }
                         if (pictemp != null) {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed + `\n[CQ:image,file=file:///${pictemp}]`)
+                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed + `\n[CQ:image,file=file:///${pictemp}]\n`+temp2)
                         } else {
                             replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed);
                         }
@@ -601,7 +629,7 @@ async function start() {
                     logger2.info("抽签数：" + chouqiantupianjishu);
                     if (chouqiantupianjishu <= chouqianxianzhishu || chouqianxianzhishu == -1) { //抽签总数限制
                         if (pictemp != null) {
-                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]`, true, true)
+                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]\n`+temp, true, true)
                         } else {
                             replyMsg(context, "未找到图片！", true, true);
                         }
@@ -1177,6 +1205,28 @@ async function start() {
         });
         logger2.info("签到图数：" + pic1);
         logger2.info('每日累计次数清0, ' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
+        bot('get_status').then(data1 => {
+            bot('get_version_info').then(data2 => {
+                let stats = `
+接受包: ${data1.stat.packet_received}
+发送包: ${data1.stat.packet_sent}
+丢包: ${data1.stat.packet_lost}
+接受消息: ${data1.stat.message_received}
+发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times}
+丢失: ${data1.stat.lost_times}`;
+                logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
+                logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
+                bot('send_private_msg', {
+                    user_id: setting.admin,
+                    message: "go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats
+                });
+            }).catch(err => {
+                logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
+            });
+        }).catch(err => {
+            logger.error(new Date().toString() + "get_version_info:" + JSON.stringify(err));
+        });
     });
     //j1.cancel();
     function doOCR(context) {

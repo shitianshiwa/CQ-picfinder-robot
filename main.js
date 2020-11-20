@@ -251,14 +251,11 @@ async function start() {
     //连接相关监听
     bot('get_status').then(data1 => {
         bot('get_version_info').then(data2 => {
+            //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             let stats = `
-接受包: ${data1.stat.packet_received}
-发送包: ${data1.stat.packet_sent}
-丢包: ${data1.stat.packet_lost}
-接受消息: ${data1.stat.message_received}
-发送消息: ${data1.stat.message_sent}
-断开链接: ${data1.stat.disconnect_times}
-丢失: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
             logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
             bot('send_private_msg', {
@@ -319,13 +316,9 @@ async function start() {
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
                     let stats = `
-接受包: ${data1.stat.packet_received}
-发送包: ${data1.stat.packet_sent}
-丢包: ${data1.stat.packet_lost}
-接受消息: ${data1.stat.message_received}
-发送消息: ${data1.stat.message_sent}
-断开链接: ${data1.stat.disconnect_times}
-丢失: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                     replyMsg(context, "go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats);
@@ -1208,13 +1201,9 @@ async function start() {
         bot('get_status').then(data1 => {
             bot('get_version_info').then(data2 => {
                 let stats = `
-接受包: ${data1.stat.packet_received}
-发送包: ${data1.stat.packet_sent}
-丢包: ${data1.stat.packet_lost}
-接受消息: ${data1.stat.message_received}
-发送消息: ${data1.stat.message_sent}
-断开链接: ${data1.stat.disconnect_times}
-丢失: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
+断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
                 logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                 logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "cqhttp插件正常运行中：" + data1.app_good + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                 bot('send_private_msg', {

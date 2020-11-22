@@ -253,7 +253,7 @@ async function start() {
         bot('get_version_info').then(data2 => {
             //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
 接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
 断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
@@ -316,7 +316,7 @@ async function start() {
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
                     let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
 接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
 断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
@@ -1201,7 +1201,7 @@ async function start() {
         bot('get_status').then(data1 => {
             bot('get_version_info').then(data2 => {
                 let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_received+data1.stat.packet_sent)*100).toFixed(3)}%
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
 接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
 断开链接: ${data1.stat.disconnect_times} ， 丢失: ${data1.stat.lost_times}`;
                 logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))

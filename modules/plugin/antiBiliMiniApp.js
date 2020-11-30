@@ -198,7 +198,7 @@ function humanNum(num) {
     return num < 10000 ? num : `${(num / 10000).toFixed(1)}万`;
 }
 //返回视频信息
-function getVideoInfo(param, msg, gid, sessdata2 = "", two = false,s="") {
+function getVideoInfo(param, msg, gid, sessdata2 = "", two = false, s = "") {
     //获取限制游客和外链需要加 head cookie加b站的 sessdata来获取
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
@@ -216,7 +216,7 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false,s="") {
                         return "请求错误";
                     case -403:
                         if (two == false) {
-                            return getVideoInfo(param, msg, gid, sessdata, true,"禁止游客访问和外链跳转(该视频未登录无法观看，且网页限制referer跳转)");
+                            return getVideoInfo(param, msg, gid, sessdata, true, "禁止游客访问和外链跳转(该视频未登录无法观看，且网页限制referer跳转)");
                         } else {
                             return "访问权限不足";
                         }
@@ -419,6 +419,24 @@ function getCvFromShortLink(shortLink) {
             return null;
         });
 }
+//得到b站短链接转长链接等到md,ss,ep号
+function getMdFromShortLink(shortLink) {
+    logger2.info("md、ss、ep shortLink: " + shortLink);
+    return head(shortLink, {
+            maxRedirects: 0,
+            validateStatus: status => status >= 200 && status < 400
+        })
+        .then(ret => {
+            //logger2.info(ret.headers.location);
+            return ret.headers.location
+        })
+        .catch(e => {
+            logError(`${new Date().toString()} [error] head request bilibili md、ss、ep short link ${shortLink}`);
+            logError(e);
+            logger2.error(`${new Date().toString()} [error] head request bilibili md、ss、ep short link ${shortLink}:` + e);
+            return null;
+        });
+}
 //得到番剧/影视信息
 function getMdInfo(md, gid) {
     if (md != null) {
@@ -589,15 +607,17 @@ async function getCvFromMsg(msg) {
     return null;
 }
 //获取mid号
-function getMdFromMsg(msg) {
+async function getMdFromMsg(msg, secord = false) {
     let search;
     if ((search = /bilibili\.com\/bangumi\/media\/md([0-9]+)/.exec(msg))) {
         if (search != null) {
             return search[1]; //返回md值
         }
     }
+    //logger2.info("msg:" + msg);
     if ((search = /bilibili\.com\/bangumi\/(media|play)\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return getmedia_id(search[2]);
     if ((search = /(b23|acg)\.tv\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return getmedia_id(search[2]);
+    if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg)) && secord == false) return getMdFromMsg(await getMdFromShortLink(`http://${search[0]}`), true);
     return null;
 }
 

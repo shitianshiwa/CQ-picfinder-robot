@@ -472,8 +472,7 @@ function getMdInfo(md, gid) {
 标题：${title}
 分类：${type_name}
 地区：${name}
-更新进度：${index_show}
-评分人数: ${count} , 评分: ${score}
+更新进度：${index_show}${count!=null?"\n评分人数: "+count+" , 评分:"+score:""}
 ${share_url}`
             }
         ).catch(e => {
@@ -595,15 +594,20 @@ async function getAvBvFromMsg(msg) {
     let search;
     if ((search = getAvBvFromNormalLink(msg))) return search;
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://${search[0]}`);
-    if ((search = /(av|AV|bv|BV)[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
+    if ((search = /^(av|AV)[0-9]+$/.exec(msg)) || (search = /^(bv|BV)[0-9a-zA-Z]{10,10}$/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
     return null;
 }
+/**
+{"message":"avbvshortLink: http://www.bilibili.com/video/bvvJ","level":"info"}
+{"message":"https://www.bilibili.com/video/bvvJ","level":"info"}
+{"message":"https://api.bilibili.com/x/web-interface/view?bvid=bvvJ","level":"info"}
+ */
 //获取cv号
 async function getCvFromMsg(msg) {
     let search;
     if ((search = /bilibili\.com\/read\/cv([0-9]+)/.exec(msg))) return search[1]; //专栏
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://${search[0]}`);
-    if ((search = /(cv|CV)[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
+    if ((search = /^(cv|CV)[0-9]+$/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
     return null;
 }
 //获取mid号

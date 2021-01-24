@@ -19,6 +19,7 @@ import antiBiliMiniApp from './src/plugin/antiBiliMiniApp';
 import logError from './src/logError';
 import event from './src/event';
 import corpus from './src/plugin/corpus';
+import getGroupFile from './src/plugin/getGroupFile';
 const ocr = require('./src/plugin/ocr');
 
 const bot = new CQWebSocket(global.config.cqws);
@@ -30,6 +31,7 @@ globalReg({
   bot,
   replyMsg,
   sendMsg2Admin,
+  parseArgs,
 });
 
 // 初始化
@@ -150,16 +152,15 @@ function commonHandle(e, context) {
   if (startChar === '/' || startChar === '<') return true;
 
   // 通用指令
-  const args = parseArgs(context.message);
-  if (args.help) {
+  if (context.message === '--help') {
     replyMsg(context, 'https://github.com/Tsuk1ko/cq-picsearcher-bot/wiki/%E5%A6%82%E4%BD%95%E9%A3%9F%E7%94%A8');
     return true;
   }
-  if (args.version) {
+  if (context.message === '--version') {
     replyMsg(context, version);
     return true;
   }
-  if (args.about) {
+  if (context.message === '--about') {
     replyMsg(context, 'https://github.com/Tsuk1ko/cq-picsearcher-bot');
     return true;
   }
@@ -250,10 +251,31 @@ function adminPrivateMsg(e, context) {
 }
 
 // 私聊以及群组@的处理
-function privateAndAtMsg(e, context) {
+async function privateAndAtMsg(e, context) {
   if (commonHandle(e, context)) {
     e.stopPropagation();
     return;
+  }
+
+  if (context.message_type === 'group') {
+    try {
+      const rMsgId = _.get(/^\[CQ:reply,id=([-\d]+?)\]/.exec(context.message), 1);
+      if (rMsgId) {
+        const { data } = await bot('get_msg', { message_id: Number(rMsgId) });
+        if (data) {
+          // 如果回复的是机器人的消息则忽略
+          if (data.sender.user_id === bot._qq) {
+            e.stopPropagation();
+            return;
+          }
+          const imgs = getImgs(data.message);
+          const rMsg = imgs
+            .map(({ file, url }) => `[CQ:image,file=${CQ.escape(file, true)},url=${CQ.escape(url, true)}]`)
+            .join('');
+          context = { ...context, message: context.message.replace(/^\[CQ:reply,id=[-\d]+?\]/, rMsg) };
+        }
+      }
+    } catch (error) {}
   }
 
   if (hasImage(context.message)) {
@@ -282,7 +304,8 @@ function debugPrivateAndAtMsg(e, context) {
     e.stopPropagation();
     return global.config.bot.replys.debug;
   }
-  console.log(`${global.getTime()} 收到私聊消息 qq=${context.user_id}`);
+  if (context.message_type === 'private') console.log(`${global.getTime()} 收到私聊消息 qq=${context.user_id}`);
+  else console.log(`${global.getTime()} 收到群组消息 group=${context.group_id} qq=${context.user_id}`);
   console.log(debugMsgDeleteBase64Content(context.message));
   return privateAndAtMsg(e, context);
 }
@@ -298,8 +321,8 @@ function debugGroupMsg(e, context) {
 }
 
 // 群组消息处理
-function groupMsg(e, context) {
-  if (commonHandle(e, context)) {
+async function groupMsg(e, context) {
+  if (commonHandle(e, context) || (await getGroupFile(context))) {
     e.stopPropagation();
     return;
   }
@@ -398,7 +421,8 @@ async function searchImg(context, customDB = -1) {
   // 决定搜索库
   let db = snDB[global.config.bot.saucenaoDefaultDB] || snDB.all;
   if (customDB < 0) {
-    if (args.pixiv) db = snDB.pixiv;
+    if (args.all) db = snDB.all;
+    else if (args.pixiv) db = snDB.pixiv;
     else if (args.danbooru) db = snDB.danbooru;
     else if (args.doujin || args.book) db = snDB.doujin;
     else if (args.anime) db = snDB.anime;
@@ -447,7 +471,7 @@ async function searchImg(context, customDB = -1) {
         let success = true;
         let snLowAcc = false;
         let useAscii2d = args.a2d;
-        let useWhatAnime = args.anime;
+        let useWhatAnime = db === snDB.anime;
 
         // saucenao
         if (!useAscii2d) {
@@ -456,9 +480,11 @@ async function searchImg(context, customDB = -1) {
           if (snRes.lowAcc) snLowAcc = true;
           if (
             (global.config.bot.useAscii2dWhenLowAcc && snRes.lowAcc && (db === snDB.all || db === snDB.pixiv)) ||
-            (global.config.bot.useAscii2dWhenQuotaExcess && snRes.excess)
-          )
+            (global.config.bot.useAscii2dWhenQuotaExcess && snRes.excess) ||
+            (global.config.bot.useAscii2dWhenFailed && !success)
+          ) {
             useAscii2d = true;
+          }
           if (!snRes.lowAcc && snRes.msg.indexOf('anidb.net') !== -1) useWhatAnime = true;
           if (snRes.msg.length > 0) needCacheMsgs.push(snRes.msg);
           replySearchMsgs(context, snRes.msg, snRes.warnMsg);
@@ -475,6 +501,7 @@ async function searchImg(context, customDB = -1) {
             console.error(`${global.getTime()} [error] ascii2d`);
             logError(asErr);
           } else {
+            success = true;
             replySearchMsgs(context, color, bovw);
             needCacheMsgs.push(color);
             needCacheMsgs.push(bovw);
@@ -561,8 +588,8 @@ function getImgs(msg) {
   let search = reg.exec(msg);
   while (search) {
     result.push({
-      file: search[1],
-      url: search[2],
+      file: CQ.unescape(search[1]),
+      url: CQ.unescape(search[2]),
     });
     search = reg.exec(msg);
   }

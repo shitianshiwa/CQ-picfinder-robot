@@ -1,6 +1,6 @@
 {
   "name": "cq-picsearcher-bot",
-  "version": "2.20.0",
+  "version": "2.21.8",
   "description": "二次元搜图机器人",
   "main": "index.js",
   "private": true,
@@ -9,11 +9,7 @@
     "start": "pm2 start ecosystem.config.js",
     "stop": "pm2 stop ecosystem.config.js",
     "restart": "pm2 restart ecosystem.config.js",
-    "log": "pm2 logs CQPF",
-    "pm2start": "pm2 start ecosystem.config.js",
-    "pm2stop": "pm2 stop ecosystem.config.js",
-    "pm2restart": "pm2 restart ecosystem.config.js",
-    "pm2log": "pm2 logs CQPF"
+    "log": "pm2 logs CQPF"
   },
   "repository": {
     "type": "git",
@@ -26,12 +22,12 @@
   },
   "homepage": "https://moe.best/projects/qq-robot-picfinder.html",
   "dependencies": {
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "canvas": "^2.6.1",
     "cheerio": "^1.0.0-rc.3",
     "compare-versions": "^3.6.0",
     "cq-websocket": "^2.1.1",
-    "cron-parser": "^2.17.0",
+    "cron-parser": "^2.18.0",
     "deep-freeze": "^0.0.1",
     "esm": "3.2.25",
     "fs-extra": "^9.0.1",
@@ -53,16 +49,16 @@
     "random-seed": "^0.3.0",
     "remove-markdown": "^0.3.0",
     "socks-proxy-agent": "^5.0.0",
-    "sqlite": "^4.0.15",
-    "sqlite3": "^4.2.0",
+    "sqlite": "^4.0.18",
+    "sqlite3": "^5.0.0",
     "tencentcloud-sdk-nodejs": "3.0.118"
   },
   "devDependencies": {
-    "eslint": "^7.13.0",
-    "eslint-config-standard": "^16.0.1",
+    "eslint": "^7.16.0",
+    "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.2"
+    "eslint-plugin-standard": "^5.0.0"
   }
 }

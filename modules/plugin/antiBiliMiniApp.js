@@ -204,7 +204,10 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false, s = "") {
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
     return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`, {
             headers: {
-                'cookie': 'SESSDATA=' + sessdata2 + ';'
+                'cookie': 'SESSDATA=' + sessdata2 + ';',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+                'origin': 'https://www.bilibili.com',
+                'referer': 'https://www.bilibili.com/'
             }
         })
         .then(data => {
@@ -221,7 +224,7 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false, s = "") {
                             return "访问权限不足";
                         }
                         case -404:
-                            return "找不到视频信息";
+                            return "找不到视频信息或者限制指定地区ip可看";
                         case 62002:
                             return "稿件不可见";
                         default:
@@ -363,6 +366,7 @@ https://www.bilibili.com/video/${bvid}`;
 function getAvBvFromNormalLink(link) {
     if (typeof link !== 'string') return null;
     const search = /bilibili\.com\/video\/(?:[Aa][Vv]([0-9]+)|([Bb][Vv][0-9a-zA-Z]+))/.exec(link);
+    //BV号没有0 (BV|bv)1[a-zA-Z1-9]{2}4[a-zA-Z1-9]{1}1[a-zA-Z1-9]{1}7[a-zA-Z1-9]{2}
     //const search = link.match(/bilibili\.com\/video\/(?:[Aa][Vv]([0-9]+)|([Bb][Vv][0-9a-zA-Z]+))/);
     if (search) {
         //    let search2 = /bilibili\.com\/video\/(?:[Aa][Vv]([0-9]+)|([Bb][Vv][0-9a-zA-Z]+))/.exec(search[0]);
@@ -472,7 +476,8 @@ function getMdInfo(md, gid) {
 标题：${title}
 分类：${type_name}
 地区：${name}
-更新进度：${index_show}${count!=null?"\n评分人数: "+count+" , 评分:"+score:""}
+更新进度：${index_show}
+评分人数: ${count} , 评分: ${score}
 ${share_url}`
             }
         ).catch(e => {
@@ -594,20 +599,15 @@ async function getAvBvFromMsg(msg) {
     let search;
     if ((search = getAvBvFromNormalLink(msg))) return search;
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://${search[0]}`);
-    if ((search = /^(av|AV)[0-9]+$/.exec(msg)) || (search = /^(bv|BV)[0-9a-zA-Z]{10,10}$/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
+    if ((search = /(av|AV|bv|BV)[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
     return null;
 }
-/**
-{"message":"avbvshortLink: http://www.bilibili.com/video/bvvJ","level":"info"}
-{"message":"https://www.bilibili.com/video/bvvJ","level":"info"}
-{"message":"https://api.bilibili.com/x/web-interface/view?bvid=bvvJ","level":"info"}
- */
 //获取cv号
 async function getCvFromMsg(msg) {
     let search;
     if ((search = /bilibili\.com\/read\/cv([0-9]+)/.exec(msg))) return search[1]; //专栏
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://${search[0]}`);
-    if ((search = /^(cv|CV)[0-9]+$/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
+    if ((search = /(cv|CV)[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
     return null;
 }
 //获取mid号

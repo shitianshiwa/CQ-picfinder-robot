@@ -96,13 +96,15 @@ async function doSearch(imgURL, db, debug = false, whitegroup, whiteqq) {
                                 Math.abs(result.header.similarity - similarity) < 5
                         );
                         if (pixivResults.length > 1) {
-                            const resultData = _.minBy(pixivResults, result =>
+                            const result = _.minBy(pixivResults, result =>
                                 parseInt(result.data.ext_urls[0].match(/\d+/).toString())
-                            ).data;
-                            url = resultData.ext_urls[0];
-                            title = resultData.title;
-                            member_name = resultData.member_name;
-                            member_id = resultData.member_id;
+                            );
+                            url = result.data.ext_urls[0];
+                            title = result.data.title;
+                            member_name = result.data.member_name;
+                            member_id = result.data.member_id;
+                            similarity = result.header.similarity;
+                            thumbnail = result.header.thumbnail;
                         }
                     } else if (ext_urls.length > 1) {
                         // 如果结果有多个，优先取 danbooru
@@ -125,6 +127,7 @@ async function doSearch(imgURL, db, debug = false, whitegroup, whiteqq) {
                 if (long_remaining < 20) warnMsg += CQ.escape(`\nsaucenao[${hostIndex}]：注意，24h内搜图次数仅剩${long_remaining}次\n`);
                 else if (short_remaining < 5) warnMsg += CQ.escape(`\nsaucenao[${hostIndex}]：注意，30s内搜图次数仅剩${short_remaining}次\n`);
                 //相似度
+                similarity = parseFloat(similarity).toFixed(2);
                 if (similarity < config.picfinder.saucenaoLowAcc) {
                     lowAcc = true;
                     warnMsg += CQ.escape(`\n相似度[${similarity}%]过低，如果这不是你要找的图，那么可能：确实找不到此图/图为原图的局部图/图清晰度太低/搜索引擎尚未同步新图\n`);

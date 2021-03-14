@@ -2,7 +2,7 @@ import { get } from './axiosProxy';
 import Cheerio from 'cheerio';
 import { parse } from 'url';
 
-const domainList = ['danbooru.donmai.us', 'konachan.com', 'yande.re', 'gelbooru.com'];
+const domainList = new Set(['danbooru.donmai.us', 'konachan.com', 'yande.re', 'gelbooru.com']);
 
 /**
  * 得到图源
@@ -13,7 +13,7 @@ const domainList = ['danbooru.donmai.us', 'konachan.com', 'yande.re', 'gelbooru.
  */
 export default async function (url) {
   const { hostname } = parse(url);
-  if (!domainList.includes(hostname)) return null;
+  if (!domainList.has(host)) return null;
   const { data } = await get(url);
   const $ = Cheerio.load(data);
   switch (hostname) {

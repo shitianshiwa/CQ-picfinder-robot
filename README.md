@@ -97,3 +97,7 @@ v2.18.1
 # 如果要取消
 * npm config delete proxy
 * npm config delete https-proxy
+
+## 3
+* npm i cnpm -g
+* cnpm i

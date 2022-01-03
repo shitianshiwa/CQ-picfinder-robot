@@ -7,6 +7,7 @@ import saucenao from './modules/saucenao';
 import {
     snDB
 } from './modules/saucenao';
+//import { globalReg } from './modules/utils/global';
 import whatanime from './modules/whatanime';
 import ascii2d from './modules/ascii2d';
 import CQ from './modules/CQcode';
@@ -27,14 +28,13 @@ import schedule from 'node-schedule';
 import node_localStorage2 from 'node-localstorage';
 import dayjs from 'dayjs';
 import broadcast from './modules/broadcast';
-import antiBiliMiniApp from './modules/plugin/antiBiliMiniApp';
+import bilibili from './modules/plugin/bilibili';
 import logError from './modules/logError';
 import NodeCache from 'node-cache';
 import path from 'path';
 import fs from 'fs';
 import JOIN from 'path'
 const join = JOIN.join;
-
 
 //常量
 const node_localStorage = node_localStorage2.LocalStorage;
@@ -99,7 +99,7 @@ function findSync(startPath) {
 async function start() {
     if (setting.akhr.enable) Akhr.init().catch(console.error);
     if (setting.reminder.enable) rmdInit(replyMsg);
-    pic1 = await new Promise(function (resolve, reject) {
+    pic1 = await new Promise(function(resolve, reject) {
         resolve(findSync('./tuku').length - 1);
     });
 
@@ -254,9 +254,8 @@ async function start() {
             //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             //> 注意: 所有统计信息都将在重启后重制
             let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
-TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
             logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
             bot('send_private_msg', {
@@ -267,7 +266,11 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
             logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
         });
     }).catch(err => {
-        logger.error(new Date().toString() + "get_version_info:" + JSON.stringify(err));
+        try {
+            logger.error(new Date().toString() + "get_version_info1:" + JSON.stringify(err));
+        } catch (e) {
+            logger.error(new Date().toString() + "get_version_info2:" + err);
+        }
     });
     /*.then(data => {}).catch(err => {
             logger2.error(new Date().toString() + "," + err);
@@ -317,12 +320,12 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
                     let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
-TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
-                    replyMsg(context, "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats);
+                    replyMsg(context, "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
+                    replyMsg(context, "数据统计：" + stats);
                 }).catch(err => {
                     logger.error(new Date().toString() + "get_status:" + JSON.stringify(err));
                 });
@@ -346,7 +349,7 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
             if (rmdHandler(context)) return true;
         }
         // 反哔哩哔哩小程序
-        antiBiliMiniApp(context, replyMsg);
+        bilibili(context, replyMsg);
         return false;
     }
 
@@ -623,9 +626,9 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
                     logger2.info("抽签数：" + chouqiantupianjishu);
                     if (chouqiantupianjishu <= chouqianxianzhishu || chouqianxianzhishu == -1) { //抽签总数限制
                         if (pictemp != null) {
-                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]\n` + temp, true, true)
+                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]\n` + temp, true, false)
                         } else {
-                            replyMsg(context, "未找到图片！", true, true);
+                            replyMsg(context, "未找到图片！", true, false);
                         }
                     }
                     return true;
@@ -844,7 +847,7 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
             }
         }
         //console.log("本次搜索图片数：" + tupianshu);
-        var t = setInterval(async () => {
+        var t = setInterval(async() => {
             if (tupianshu > 0) {
                 let img = imgs[imgs.length - tupianshu];
                 //console.log(tupianshu);
@@ -1028,7 +1031,7 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
                                 }));
                                 let temp = parseInt(ascii2dday.getItem('ascii2d'));
                                 temp++;
-                                await new Promise(function (resolve, reject) {
+                                await new Promise(function(resolve, reject) {
                                     resolve(ascii2dday.setItem('ascii2d', temp));
                                 });
                                 if (asErr) {
@@ -1186,7 +1189,7 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
     */
 
 
-    var j1 = schedule.scheduleJob('0 0 0 * * *', async function () { //每天0时0分0秒清0。定时器
+    var j1 = schedule.scheduleJob('0 0 0 * * *', async function() { //每天0时0分0秒清0。定时器
         let t = new Date();
         logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + qiandaotupianjishu)
         qiandaotupianjishu = 0; //一天的签到总数
@@ -1194,7 +1197,7 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
         chouqiantupianjishu = 0; //一天的抽签总数
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
-        pic1 = await new Promise(function (resolve, reject) {
+        pic1 = await new Promise(function(resolve, reject) {
             resolve(findSync('./tuku').length - 1);
         });
         logger2.info("签到图数：" + pic1);
@@ -1202,9 +1205,8 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
         bot('get_status').then(data1 => {
             bot('get_version_info').then(data2 => {
                 let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost/(data1.stat.packet_lost+data1.stat.packet_sent)*100).toFixed(3)}%
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent}
-TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
                 logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                 logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                 bot('send_private_msg', {
@@ -1375,18 +1377,18 @@ TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.l
                     user_id: context.user_id,
                     message: msg,
                 }).then(data => {
-                    logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
+                    logger2.info(new Date().toString() + "发送到QQ:" + context.user_id + "," + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ:" + context.user_id + "," + JSON.stringify(err))
                 });
             case 'group':
                 return bot('send_group_msg', {
                     group_id: context.group_id,
                     message: msg,
                 }).then(data => {
-                    logger2.info(new Date().toString() + "发送到QQ" + JSON.stringify(data))
+                    logger2.info(new Date().toString() + "发送到QQ群:" + context.group_id + "," + JSON.stringify(data))
                 }).catch(err => {
-                    logger2.error(new Date().toString() + "发送到QQ" + JSON.stringify(err))
+                    logger2.error(new Date().toString() + "发送到QQ群:" + context.group_id + "," + JSON.stringify(err))
                 });
             case 'discuss':
                 return bot('send_discuss_msg', {
@@ -1484,7 +1486,7 @@ start();
 
 /*async function test() {
     let temp2 = await new Promise(function (resolve, reject) {
-        resolve(findSync('./tuku').length);  
+        resolve(findSync('./tuku').length);
     });
     console.log(temp2);
 }
@@ -1526,14 +1528,14 @@ var getFiles = {
         //获取文件夹下的所有图片
         getImageFiles: function (path) {
             var imageList = [];
-    
+
             this.getFileList(path).forEach((item) => {
                 var ms = image(fs.readFileSync(item.path + item.filename));
-    
+
                 ms.mimeType && (imageList.push(item.filename))
             });
             return imageList;
-    
+
         }
 };
 //获取文件夹下的所有图片

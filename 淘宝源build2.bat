@@ -1,0 +1,2 @@
+cnpm i
+pause

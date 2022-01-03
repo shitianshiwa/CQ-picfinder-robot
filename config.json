@@ -119,7 +119,7 @@
             "onlyPM": false,
             "onlyAdmin": true
         },
-        "antiBiliMiniApp": {
+        "bilibili": {
             "despise": false,
             "getVideoInfo": true,
             "sessdata":""

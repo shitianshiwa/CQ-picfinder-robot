@@ -1,7 +1,9 @@
+import _ from 'lodash';
 import Cheerio from 'cheerio';
-import CQ from './CQcode';
 import pixivShorten from './urlShorten/pixiv';
 import logError from './logError';
+import { retryAync } from './utils/retry';
+import { getCqImg64FromUrl } from './utils/image';
 const Axios = require('./axiosProxy');
 
 let hostsI = 0;
@@ -17,15 +19,30 @@ async function doSearch(url, snLowAcc = false) {
   let host = hosts[hostsI++ % hosts.length];
   if (host === 'ascii2d.net') host = `https://${host}`;
   else if (!/^https?:\/\//.test(host)) host = `http://${host}`;
-  const { colorURL, colorDetail } = await Axios.get(`${host}/search/url/${encodeURIComponent(url)}`).then(r => ({
-    colorURL: r.request.res.responseUrl,
-    colorDetail: getDetail(r, host),
-  }));
+  const { colorURL, colorDetail } = await retryAync(
+    async () => {
+      const ret = await Axios.get(`${host}/search/url/${encodeURIComponent(url)}`);
+      const colorURL = ret.request.res.responseUrl;
+      if (!colorURL.includes('/color/')) {
+        const $ = Cheerio.load(ret.data, { decodeEntities: false });
+        throw new Error($('.container > .row > div:first-child > p').text().trim());
+      }
+      return {
+        colorURL,
+        colorDetail: getDetail(ret, host),
+      };
+    },
+    3,
+    e => String(_.get(e, 'response.data')).trim() === 'first byte timeout'
+  );
   const bovwURL = colorURL.replace('/color/', '/bovw/');
   const bovwDetail = await Axios.get(bovwURL).then(r => getDetail(r, host));
+  const colorRet = await getResult(colorDetail, snLowAcc);
+  const bovwRet = await getResult(bovwDetail, snLowAcc);
   return {
-    color: 'ascii2d 色合検索\n' + getShareText(colorDetail, snLowAcc),
-    bovw: 'ascii2d 特徴検索\n' + getShareText(bovwDetail, snLowAcc),
+    color: `ascii2d 色合検索\n${colorRet.result}`,
+    bovw: `ascii2d 特徴検索\n${bovwRet.result}`,
+    success: colorRet.success && bovwRet.success,
   };
 }
 
@@ -39,9 +56,7 @@ async function doSearch(url, snLowAcc = false) {
 function getDetail(ret, baseURL) {
   let result = {};
   const html = ret.data;
-  const $ = Cheerio.load(html, {
-    decodeEntities: false,
-  });
+  const $ = Cheerio.load(html, { decodeEntities: false });
   const $itembox = $('.item-box');
   for (let i = 0; i < $itembox.length; i++) {
     const $box = $($itembox[i]);
@@ -65,15 +80,15 @@ function getDetail(ret, baseURL) {
   return result;
 }
 
-function getShareText({ url, title, author, thumbnail, author_url }, snLowAcc = false) {
-  if (!url) return '由未知错误导致搜索失败';
+async function getResult({ url, title, author, thumbnail, author_url }, snLowAcc = false) {
+  if (!url) return { success: false, result: '由未知错误导致搜索失败' };
   const texts = [`「${title}」/「${author}」`];
   if (thumbnail && !(global.config.bot.hideImg || (snLowAcc && global.config.bot.hideImgWhenLowAcc))) {
-    texts.push(CQ.img(thumbnail));
+    texts.push(await getCqImg64FromUrl(thumbnail));
   }
   texts.push(pixivShorten(url));
   if (author_url) texts.push(`Author: ${pixivShorten(author_url)}`);
-  return texts.join('\n');
+  return { success: true, result: texts.join('\n') };
 }
 
 export default doSearch;

@@ -1,6 +1,282 @@
 # 更新日志
 
+## 2022
+
+### 01-03 v2.31.2
+
+- 修复可能因B站抽风而重复推送动态的问题 ([#281](../../issues/281))
+- 更新了一些依赖的版本
+
+### 01-01 v2.31.1
+
+- 新年快乐！
+- 改进了B站动态推送检测机制，减少漏动态问题
+- 新增支持解析类型为 2048 的B站动态
+
 ## 2021
+
+### 10-24 v2.31.0
+
+- 新增B站动态、直播推送功能
+- 新增 `npm run update` 脚本用于一键更新，会自动判断包管理器，如果目录中存在 `package-lock.json` 则使用 `npm`，否则使用 `yarn`
+- 新增管理者私聊指令 `--update-cqps` 用于远程一键更新，该更新方式是实验性的，建议在可以登上服务器的状态下使用，以免出现意外起不来（
+- 修复 go-cqhttp v1.0.0-beta8 及以上版本无法回复搜图的问题 by @Magic-Xin
+- 修复无法解析B站手机客户端分享的动态短链的问题
+- 配置项变更
+  - A `bot.replys.push`
+  - A `bot.replys.pushCheckInterval`
+
+### 10-24 v2.30.3
+
+- 因 pixiv.cat 在大陆被墙，`bot.setu.sendPximgProxys` 默认配置变更为 `["https://i.pixiv.re/"]`；设置了 `bot.setu.pximgProxy` 的用户也请注意修改
+- setu 使用在线反代时，如果设置了代理，反和谐会走代理下载图片；不反和谐时仍由 go-cqhttp 下载图片，这种情况下如果需要走代理，需要给 go-cqhttp 配置代理
+
+### 10-24 v2.30.2
+
+- 搜图结果中的预览缩略图将主动下载后再发送 by @NekoAria
+
+### 10-06 v2.30.1
+
+- 增加对B站专栏手机版链接的识别
+- 更新一些依赖
+
+### 08-26 v2.30.0
+
+- 更新 pm2 至 v5.1.1，如需更新内存中的 pm2 版本，请在本次更新完后启动之前执行一次 `npm run kill`
+- 使用无系统依赖的 [@napi-rs/canvas](https://github.com/Brooooooklyn/canvas) 代替 [node-canvas](https://github.com/Automattic/node-canvas)
+- 可使用 `.env` 配置环境变量，用于某些特殊情况 ([#239](../../issues/239))
+- 新增 `update:npm` 和 `update:yarn` 两个 npm 脚本，一键更新本项目
+
+### 08-22 v2.29.15
+
+- 哔哩哔哩视频解析防刷屏改进 ([#235](../../issues/235))
+- 增加 ascii2d 错误原因的输出 ([#238](../../issues/238))
+
+### 07-28 v2.29.14
+
+- 修复一些 saucenao 错误原因的判断 ([#232](../../issues/232))
+
+### 07-24 v2.29.13
+
+- ascii2d 出现“first byte timeout”错误时进行重试 ([#227](../../issues/227))
+
+### 07-01 v2.29.12
+
+- 修复 setu 不能 r18 的问题
+
+### 06-26 v2.29.11
+
+- setu 使用 API v2，keyword 支持使用 & 和 |（详见 wiki），且不再需要 API Key
+- 修复特定情况下 nhentai 搜不到本子的问题
+- QQ OCR 增加重试机制，避免偶然抽风
+- 完善 saucenao 中图源、标题、作者的获取
+- 配置项变更
+  - A `bot.replys.setuNotFind` 没有符合条件 setu 时的回复
+
+### 06-05 v2.29.10
+
+- 修复 ascii2d 搜索失败仍会缓存结果的问题 ([#202](../../issues/202))
+- 修复特定情况下 OCR 抛出异常的问题 ([#203](../../issues/203))
+
+### 05-29 v2.29.8
+
+- 提升本子搜索成功率
+- 修复一些问题
+
+### 05-29 v2.29.7
+
+- 对 saucenao 的 pixiv 结果进行权重处理 ([#199](../../issues/199))
+
+### 05-29 v2.29.6
+
+- 修正搜图和 setu 的配额机制，防止绕过限制 ([#200](../../issues/200))
+- 语言库支持使用 `[CQ:delete]` 撤回对方消息
+- 修正方舟公招计算器结果图中英文和数字的文字基线
+
+### 05-28 v2.29.5
+
+- 修复可能出现 saucenao 搜图 404 的问题 ([#198](../../issues/198))
+
+### 05-27 v2.29.4
+
+- 修复群聊 saucenao 搜索结果异常的问题 ([#195](../../issues/195))
+- 修复部分情况下会缓存失败搜索结果的问题
+
+### 05-25 v2.29.3
+
+- 修复部分情况下可能出现文件不存在错误的问题（不影响程序正常运行）
+- whatanime 发送预览视频不再需要依赖 ffmpeg
+- 改进方舟公招计算器的识别逻辑
+- 默认 OCR 服务变更为为 qq
+- `bot.setu.pximgProxy` 和 `bot.setu.sendPximgProxys` 新增支持一些占位符
+- 配置项变更
+  - M `bot.ocr.use` 默认值 `"ocr.space"` -> `"qq"`
+  - M `bot.akhr.ocr` 默认值 `"ocr.space"` -> `"qq"`
+
+### 05-23 v2.29.2
+
+- 改进方舟公招计算器生成图片的效果 ([#193](../../issues/193))
+- 新增 `autoUpdateConfig` 配置，可自动按照 `config.default.json` 来更新 `config.json`
+- 配置项变更
+  - A `autoUpdateConfig`
+
+### 05-23 v2.29.1
+
+修复找不到模块问题，若先前更新过 v2.29.0，更新到最新版时请按以下步骤操作
+
+```bash
+git reset v2.29.0 --hard
+git pull # 可能会报错，不用管
+git reset v2.29.1 --hard
+git pull
+```
+
+### 05-23 v2.29.0
+
+- 修复了 `bot.setu.r18OnlyUrl` 导致非 r18 图也只发 url 的问题 ([#182](../../issues/182))
+- 更新了 trace.moe API，解决了无法发送预览视频的问题
+- `bot.setu.r18OnlyUrl` 分开群聊、私聊、临时会话（⚠️需要更新配置） ([#183](../../issues/183))
+- 定时提醒可通过添加 `--origin` 参数使内容不被 CQ 转义，见 [wiki](../../wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#%E9%98%B2%E6%AD%A2-cq-%E8%BD%AC%E4%B9%89) ([#178](../../issues/178))
+- 可以使用 reminder 定时发送 setu，见 [wiki](../../wiki/%E9%99%84%E5%8A%A0%E5%8A%9F%E8%83%BD#setu-1) ([#174](../../issues/174))
+- 配置项变更
+  - M `bot.whatanimeHost` 默认值 `"trace.moe"` -> `"api.trace.moe"`（旧值在读取时会被自动替换为新值）
+  - M `bot.setu.r18OnlyUrl` 默认值 `false` -> `{ "private": false, "group": false, "temp": false }`，如先前修改为 `true` 请更新配置，否则会变为新默认值
+
+### 05-19 v2.28.5
+
+- 修复了 `bot.setu.pximgServerHost` 设置无效的问题
+- 弃用了一些已经不可用的短链接服务
+
+### 05-17 v2.28.4
+
+- 修复了可能出现 pm2 占用内存过多的问题
+- ⚠️本次更新前请在程序目录下执行 `npx pm2 delete CQPF`，不需要执行 `npm stop`，其他步骤相同
+
+### 05-16 v2.28.3
+
+- 修复“允许通过临时会话私聊发送”相关功能可能无效的问题
+
+### 05-16 v2.28.2
+
+- 修复 pximg 反代服务启动问题
+- pximg 反代服务默认只在本地(`127.0.0.1`)监听，如有需要请更改 `bot.setu.pximgServerHost`
+- 配置项变更
+  - A `bot.setu.pximgServerHost`
+
+### 05-16 v2.28.1
+
+- 修复 `bot.setu.shortenPximgProxy` 默认值
+
+### 05-16 v2.28.0
+
+- [#175](../../pull/175) by @niceRAM
+  - 允许通过临时会话私聊发送搜图结果
+  - 可配置 r18 setu 仅通过私聊发送（默认开启，如不需要请修改配置）
+  - 允许 r18 setu 通过临时会话私聊发送
+  - 发送 setu 链接时可以追加若干个原图镜像链接
+  - 可配置对原图镜像链接做短链接处理（增加 oy.mk 短链接服务 by @Quan666）
+- pximg 反代服务默认使用随机可用端口号（老用户可手动将 `bot.setu.pximgServerPort` 设置为 `0`）
+- 配置项变更
+  - M `bot.setu.pximgServerPort` 默认值 `60233` -> `0`
+  - A `bot.pmSearchResultTemp`
+  - A `bot.setu.sendPximgProxys`
+  - A `bot.setu.shortenPximgProxy`
+  - A `bot.setu.r18OnlyUrl`
+  - A `bot.setu.r18OnlyPrivate`
+  - A `bot.setu.r18OnlyPrivateAllowTemp`
+
+### 05-12 v2.27.1
+
+- 使用方舟公招计算器将不再需要自行安装字体
+
+### 05-11 v2.27.0
+
+- 搜图缓存使用文件缓存代替 sqlite 以节省内存，注意：`data/db.sqlite` 将会被删除
+
+### 05-05 v2.26.1
+
+- 使用 go-cqhttp 的场合下，whatanime 支持发送预览视频的功能需要自行安装 [ffmpeg](https://ffmpeg.org/download.html) 才可以使用
+- 配置项变更
+  - M `bot.whatanimeSendVideo` 默认变更为 `false`
+
+### 05-05 v2.26.0
+
+- whatanime 支持发送预览视频
+- 配置项变更
+  - A `bot.whatanimeSendVideo`
+
+### 04-25 v2.25.0
+
+- 定时提醒支持重载了（方便手动修改 `data/rmd.json`）
+- 【重要】方舟公招计算器数据格式变更，不更新此版本将无法更新数据
+- 方舟公招计算器支持配置定时自动更新
+- 获取群文件直链命令支持含空格的文件 ([#169](../../issues/169))
+- 哔哩哔哩解析支持 bili2233.cn 短链 ([#170](../../issues/170))
+- 配置项变更
+  - A `bot.akhr.updateInterval`
+
+### 04-05 v2.24.1
+
+- 修复哔哩哔哩解析无法解析 b23 / acg 短链接的问题
+
+### 04-04 v2.24.0
+
+- 【反哔哩哔哩小程序】模块更名为【哔哩哔哩解析】模块，并增加动态、专栏、直播间的解析 (thanks @NekoHina)
+- 配置项变更
+  - M `bot.antiBiliMiniApp` -> `bot.bilibili`：仍兼容旧字段
+  - A `bot.bilibili.getDynamicInfo`
+  - A `bot.bilibili.getArticleInfo`
+  - A `bot.bilibili.getLiveRoomInfo`
+
+### 03-22 v2.23.2
+
+- 更新检查不再依赖本地 git
+
+### 03-21 v2.23.1
+
+- 修复将 `bot.admin` 设置为机器人自己时会无限发言的问题 ([#152](../../issues/152))
+
+### 03-13 v2.23.0
+
+- 在某张图的搜索过程中收到的同一张图片的搜图请求将会等待搜索结束后直接使用同一搜索结果 ([#136](../../issues/136))
+- 搜索未结束时在相同场景下收到同一张图片的搜图请求将会直接返回提示语 `bot.replys.searching` ([#136](../../issues/136))
+- 搜图模式结束后若未收到过图片则会发送提醒 ([#136](../../issues/136))
+- 可选使用合并转发发送搜图结果 `bot.groupForwardSearchResult` ([#136](../../issues/136))
+- 可能修复了有时候发出的搜图结果图片上传失败的问题
+- 配置项变更
+  - A `bot.replys.searching`
+  - A `bot.groupForwardSearchResult`
+
+### 03-12 v2.22.5
+
+- 修复 whatanime 搜索失败问题
+
+### 03-08 v2.22.4
+
+- 尽可能排除 pixiv 盗图结果 by @NekoAria
+
+### 02-17 v2.22.3
+
+- 修复 whatanime 搜索失败问题
+
+### 02-15 v2.22.2
+
+- 修复更新检测逻辑 ([#142](../../issues/133))
+
+### 02-09 v2.22.1
+
+- 定时提醒支持设置精华消息 (go-cqhttp ≥ v0.9.40)，详见 wiki
+
+### 01-25 v2.22.0
+
+- `ocr_image` API 移除实验模式，如有使用请将 go-cqhttp 升级到 v0.9.34 以上
+- 可设置 saucenao 在搜到本子时是否进一步去 nhentai 搜索（默认是，与之前的行为一致，若没有特殊需求不需要动该设置）([#134](../../issues/134))
+- 配置项变更
+  - A `bot.getDojinDetailFromNhentai`
+
+### 01-25 v2.21.9
+
+- 修复 whatanime 无法使用的问题 ([#133](../../issues/133))
 
 ### 01-21 v2.21.8
 

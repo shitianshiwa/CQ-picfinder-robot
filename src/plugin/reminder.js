@@ -4,17 +4,22 @@ import Parser from 'cron-parser';
 import minimist from 'minimist';
 import _ from 'lodash';
 import { setLargeTimeout, clearLargeTimeout } from '../utils/largeTimeout';
+import logError from '../logError';
+import emitter from '../emitter';
+import CQ from '../CQcode';
+import sendSetu from './setu';
 
 const rmdFile = Path.resolve(__dirname, '../../data/rmd.json');
-if (!Fse.existsSync(rmdFile)) Fse.writeJsonSync(rmdFile, { g: {}, d: {}, u: {}, next: 0 });
-const rmd = Fse.readJsonSync(rmdFile);
-const timeout = {};
-let inited = false;
+let rmd = null;
+const timeout = new Map();
+
+emitter.onConfigLoad(rmdInit);
 
 function rmdInit() {
-  if (inited) return;
-  restoreRmd();
-  inited = true;
+  stopAll();
+  if (global.config.bot.reminder.enable) {
+    restoreRmd();
+  }
 }
 
 function saveRmd() {
@@ -22,18 +27,24 @@ function saveRmd() {
 }
 
 function restoreRmd() {
-  _.forEach(_.omit(rmd, 'next'), list => {
-    _.forEach(list, rlist => {
-      _.forEach(rlist, ({ msg, time, ctx }, tid) => {
-        const interval = Parser.parseExpression(time);
-        start(tid, interval, ctx, msg);
+  if (Fse.existsSync(rmdFile)) {
+    rmd = Fse.readJsonSync(rmdFile);
+    _.forEach(_.omit(rmd, 'next'), list => {
+      _.forEach(list, rlist => {
+        _.forEach(rlist, (item, tid) => {
+          const interval = Parser.parseExpression(item.time);
+          start(tid, interval, item);
+        });
       });
     });
-  });
+  } else {
+    rmd = { g: {}, d: {}, u: {}, next: 0 };
+  }
 }
 
 function parseArgs(str, enableArray = false) {
   const m = minimist(str.split(' '), {
+    string: ['rmd', 'time'],
     boolean: true,
   });
   if (!enableArray) {
@@ -58,23 +69,72 @@ function ctxAvailable(ctx) {
   return true;
 }
 
-function start(tid, interval, ctx, msg) {
+function start(tid, interval, item) {
+  const { ctx, msg } = item;
   const setting = global.config.bot.reminder;
   const now = _.now();
   let next = interval.next();
   while (next.getTime() < now) next = interval.next();
 
-  timeout[tid] = setLargeTimeout(() => {
-    if (setting.enable && ctxAvailable(ctx)) global.replyMsg(ctx, msg);
-    start(tid, interval, ctx, msg);
-  }, next);
+  timeout.set(
+    tid,
+    setLargeTimeout(() => {
+      if (setting.enable && ctxAvailable(ctx)) {
+        if (msg.startsWith('<精华消息>') && ctx.message_type === 'group') {
+          if (item.essence) {
+            global.bot('delete_essence_msg', { message_id: item.essence }).catch(e => {
+              logError(`${global.getTime()} [error] reminder remove essence`);
+              logError(e);
+            });
+            item.essence = null;
+            saveRmd();
+          }
+          global.replyMsg(ctx, msg.replace(/^<精华消息>/, '')).then(r => {
+            const message_id = _.get(r, 'data.message_id');
+            if (message_id) {
+              global
+                .bot('set_essence_msg', { message_id })
+                .then(() => {
+                  item.essence = message_id;
+                  saveRmd();
+                })
+                .catch(e => {
+                  logError(`${global.getTime()} [error] reminder set essence`);
+                  logError(e);
+                });
+            }
+          });
+        } else if (
+          msg.startsWith('<setu>') &&
+          ctx.message_type === 'group' &&
+          ctx.user_id === global.config.bot.admin
+        ) {
+          if (!global.config.bot.setu.enable) return;
+          sendSetu(
+            {
+              ...ctx,
+              message: msg.replace(/^<setu>/, ''),
+            },
+            false
+          );
+        } else global.replyMsg(ctx, msg);
+      }
+      start(tid, interval, item);
+    }, next)
+  );
 }
 
 function stop(tid) {
-  if (timeout[tid]) {
-    clearLargeTimeout(timeout[tid]);
+  if (timeout.has(tid)) {
+    clearLargeTimeout(timeout.get(tid));
+    timeout.delete(tid);
     return true;
   } else return false;
+}
+
+function stopAll() {
+  timeout.forEach(lto => clearLargeTimeout(lto));
+  timeout.clear();
 }
 
 function addRmd(type, rid, tid, uid, msg, time, ctx) {
@@ -82,6 +142,7 @@ function addRmd(type, rid, tid, uid, msg, time, ctx) {
   if (!t[rid]) t[rid] = {};
   t[rid][tid] = { uid, msg, time, ctx };
   saveRmd();
+  return t[rid][tid];
 }
 
 function parseCtx(ctx) {
@@ -152,8 +213,8 @@ function add(ctx, args) {
   try {
     const interval = Parser.parseExpression(cron);
     const tid = rmd.next++;
-    addRmd(type, rid, tid, ctx.user_id, args.rmd, cron, rctx);
-    start(tid, interval, rctx, args.rmd);
+    const item = addRmd(type, rid, tid, ctx.user_id, args.origin ? CQ.unescape(args.rmd) : args.rmd, cron, rctx);
+    start(tid, interval, item);
     global.replyMsg(ctx, `添加成功(ID=${tid})`, true);
   } catch (e) {
     global.replyMsg(ctx, 'time 格式有误，请使用 crontab 时间格式，并将空格替换成英文分号(;)', true);
@@ -182,7 +243,14 @@ function del(ctx, tid) {
   const { type, rid } = parseCtx(ctx);
   try {
     const tlist = rmd[type][rid];
-    if (!tlist[tid]) throw new Error();
+    const item = tlist[tid];
+    if (!item) throw new Error();
+    if (item.essence) {
+      global.bot('delete_essence_msg', { message_id: item.essence }).catch(e => {
+        logError(`${global.getTime()} [error] reminder remove essence`);
+        logError(e);
+      });
+    }
     delete tlist[tid];
     if (!_.size(tlist)) delete rmd[type][rid];
     saveRmd();
@@ -193,4 +261,4 @@ function del(ctx, tid) {
   }
 }
 
-export { rmdInit, rmdHandler };
+export { rmdHandler };

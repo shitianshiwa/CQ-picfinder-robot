@@ -99,7 +99,7 @@ function findSync(startPath) {
 async function start() {
     if (setting.akhr.enable) Akhr.init().catch(console.error);
     if (setting.reminder.enable) rmdInit(replyMsg);
-    pic1 = await new Promise(function(resolve, reject) {
+    pic1 = await new Promise(function (resolve, reject) {
         resolve(findSync('./tuku').length - 1);
     });
 
@@ -206,13 +206,13 @@ async function start() {
             //明日方舟
             if (args['update-akhr'])
                 Akhr.updateData()
-                .then(() => replyMsg(context, '方舟公招数据已更新'))
-                .catch(e => {
-                    logError(e);
-                    let t = new Date();
-                    logger2.info(t.toString() + ",方舟公招数据更新:" + e);
-                    replyMsg(context, '方舟公招数据更新失败，请查看错误日志');
-                });
+                    .then(() => replyMsg(context, '方舟公招数据已更新'))
+                    .catch(e => {
+                        logError(e);
+                        let t = new Date();
+                        logger2.info(t.toString() + ",方舟公招数据更新:" + e);
+                        replyMsg(context, '方舟公招数据更新失败，请查看错误日志');
+                    });
 
             //停止程序（利用pm2重启）
             if (args.shutdown) {
@@ -369,7 +369,7 @@ async function start() {
         }
         //logger2.info("目标QQ号：" + temp3);
         //限制为好友私聊有效
-        if (((context.message_type == "private" /*&& context.sub_type == "friend"*/ ) /* || context.user_id == setting.admin*/ ) || (context.message.toString().search("CQ:at,qq=") != -1 && temp3 == context.self_id && temp3 != -1 && context.message_type == "group")) {
+        if (((context.message_type == "private" && context.sub_type == "friend") /* || context.user_id == setting.admin*/) || (context.message.toString().search("CQ:at,qq=") != -1 && temp3 == context.self_id && temp3 != -1 && context.message_type == "group")) {
             let uid = context.user_id;
             if (uid) {
                 let cacheKeys = [`${uid}-${true}`]; //防御私聊狂刷
@@ -442,7 +442,7 @@ async function start() {
                                 if (context.sub_type == "friend") {
                                     replyMsg(context, setting.replys.default);
                                 } else {
-                                    replyMsg(context, setting.replys.bangzhuzhiling0);
+                                    //replyMsg(context, setting.replys.bangzhuzhiling0);
                                 }
                             }
                         }
@@ -470,7 +470,7 @@ async function start() {
                             if (context.sub_type == "friend") {
                                 replyMsg(context, setting.replys.default);
                             } else {
-                                replyMsg(context, setting.replys.bangzhuzhiling0);
+                                //replyMsg(context, setting.replys.bangzhuzhiling0);
                             }
                         }
                     }
@@ -481,7 +481,7 @@ async function start() {
 
     //调试模式
     function debugRrivateAndAtMsg(context) {
-        if (context.message_type == "private" || (context.message.toString().search('CQ:at,qq=') != -1 && context.message_type == "group")) {
+        if ((context.message_type == "private" || (context.message.toString().search('CQ:at,qq=') != -1 && context.message_type == "group") && context.sub_type == "friend")) {
             if (context.user_id != setting.admin) {
                 //e.stopPropagation();
                 replyMsg(context, setting.replys.debug);
@@ -847,7 +847,7 @@ async function start() {
             }
         }
         //console.log("本次搜索图片数：" + tupianshu);
-        var t = setInterval(async() => {
+        var t = setInterval(async () => {
             if (tupianshu > 0) {
                 let img = imgs[imgs.length - tupianshu];
                 //console.log(tupianshu);
@@ -954,7 +954,7 @@ async function start() {
                             useSaucenao = true;
                             const saRet = await saucenao(img.url, db, args.debug || setting.debug, whitegroup, whiteqq);
                             if (saRet.success) success = true;
-                            if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess /*saRet.excess saucenao出错处理*/ ) || args.purge) {
+                            if ((setting.useAscii2dWhenLowAcc && saRet.lowAcc && (db == snDB.all || db == snDB.pixiv)) || (setting.useAscii2dWhenQuotaExcess && saRet.excess /*saRet.excess saucenao出错处理*/) || args.purge) {
                                 useAscii2d = true;
                             }
                             if (saRet.excess) {
@@ -1021,7 +1021,7 @@ async function start() {
                             if (ascii2dday.getItem('ascii2d') == null) {
                                 ascii2dday.setItem('ascii2d', "1");
                             }
-                            if (ascii2dday.getItem('ascii2d') <= setting.ascii2dsuotucishu /*|| context.user_id == setting.admin*/ ) {
+                            if (ascii2dday.getItem('ascii2d') <= setting.ascii2dsuotucishu /*|| context.user_id == setting.admin*/) {
                                 const {
                                     color,
                                     bovw,
@@ -1031,7 +1031,7 @@ async function start() {
                                 }));
                                 let temp = parseInt(ascii2dday.getItem('ascii2d'));
                                 temp++;
-                                await new Promise(function(resolve, reject) {
+                                await new Promise(function (resolve, reject) {
                                     resolve(ascii2dday.setItem('ascii2d', temp));
                                 });
                                 if (asErr) {
@@ -1042,8 +1042,8 @@ async function start() {
                                         message: "\n今日ascii2d使用次数:" + temp + "\n" + `ascii2d 搜索失败${errMsg}`, //ascii2d因未知原因搜索失败
                                     });*/
                                     //replySearchMsgs(context, `ascii2d 搜索失败${errMsg}`);
-                                    logger2.error(`${getTime()} [error] Ascii2d`);
-                                    logger2.error(asErr);
+                                    //logger2.error(`${getTime()} [error] Ascii2d`);
+                                    //logger2.error(asErr);
                                     //console.error(`${getTime()} [error] Ascii2d`);
                                     //console.error(asErr);
                                 } else {
@@ -1189,7 +1189,7 @@ async function start() {
     */
 
 
-    var j1 = schedule.scheduleJob('0 0 0 * * *', async function() { //每天0时0分0秒清0。定时器
+    var j1 = schedule.scheduleJob('0 0 0 * * *', async function () { //每天0时0分0秒清0。定时器
         let t = new Date();
         logger2.info(t.toString() + dayjs(t.toString()).format(' A 星期d') + ",单日签到总数：" + qiandaotupianjishu)
         qiandaotupianjishu = 0; //一天的签到总数
@@ -1197,7 +1197,7 @@ async function start() {
         chouqiantupianjishu = 0; //一天的抽签总数
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
-        pic1 = await new Promise(function(resolve, reject) {
+        pic1 = await new Promise(function (resolve, reject) {
             resolve(findSync('./tuku').length - 1);
         });
         logger2.info("签到图数：" + pic1);
@@ -1264,7 +1264,7 @@ async function start() {
             //console.log(JSON.stringify(ret.data));
             if (ret.data.ParsedResults != null) {
                 if (ret.data.ParsedResults[0].ParsedText != "") {
-                    replyMsg(context, ocrjishu.toString() + "、" + ret.data.ParsedResults[0].ParsedText.replace(/( *)\r\n$/, '').split('\r\n').toString() /*必须转成字符串才能发送，否则报错。ret.join('\n')*/ ).catch(e => {
+                    replyMsg(context, ocrjishu.toString() + "、" + ret.data.ParsedResults[0].ParsedText.replace(/( *)\r\n$/, '').split('\r\n').toString() /*必须转成字符串才能发送，否则报错。ret.join('\n')*/).catch(e => {
                         replyMsg(context, 'OCR识别发生错误');
                         logger2.error(`${getTime()} [error] OCR`);
                         logger2.error(e);
@@ -1464,11 +1464,11 @@ async function start() {
     function parseArgs(str, enableArray = false, _key = null) {
         const m = minimist(
             str
-            .replace(/(--\w+)(?:\s*)(\[CQ:)/g, '$1 $2')
-            .replace(/(\[CQ:[^\]]+\])(?:\s*)(--\w+)/g, '$1 $2')
-            .split(' '), {
-                boolean: true,
-            }
+                .replace(/(--\w+)(?:\s*)(\[CQ:)/g, '$1 $2')
+                .replace(/(\[CQ:[^\]]+\])(?:\s*)(--\w+)/g, '$1 $2')
+                .split(' '), {
+            boolean: true,
+        }
         );
         if (!enableArray) {
             for (const key in m) {

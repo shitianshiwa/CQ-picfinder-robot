@@ -13,6 +13,7 @@ import config from '../config';
 import logger2 from '../logger2';
 import dayjs from 'dayjs';
 import parseJSON from '../utils/parseJSON';
+import time from '../utils/time';
 
 //const param={aid:"2",bvid:"BV1xx411c7mD"}
 //不能反json格式的bili分享小程序(已修？)
@@ -209,133 +210,143 @@ function getVideoInfo(param, msg, gid, sessdata2 = "", two = false, s = "") {
     logger2.info(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`);
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
     return get(`https://api.bilibili.com/x/web-interface/view?${stringify(param)}`, {
-            headers: {
-                'cookie': 'SESSDATA=' + sessdata2 + ';',
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
-                'origin': 'https://www.bilibili.com',
-                'referer': 'https://www.bilibili.com/'
+        headers: {
+            'cookie': 'SESSDATA=' + sessdata2 + ';',
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+            'origin': 'https://www.bilibili.com',
+            'referer': 'https://www.bilibili.com/'
+        }
+    }).then(async data => {
+        //logger2.info(data.data.code);
+        logger2.info(new Date().toString());
+        if (data.data.code != 0) {
+            switch (data.data.code) {
+                case -400:
+                    return "请求错误";
+                case -403: //播放量是-1也能判断
+                    if (two == false) {
+                        return getVideoInfo(param, msg, gid, sessdata, true, "禁止游客访问和外链跳转(该视频未登录无法观看，且禁止有Referer非B站域名跳转)");
+                    } else {
+                        return "访问权限不足";
+                    }
+                case -404:
+                    return "找不到视频信息或者限制指定地区ip可看";
+                case 62002:
+                    return "稿件不可见";
+                default:
+                    logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
+                    return null;
             }
-        }).then(async data => {
-            //logger2.info(data.data.code);
-            logger2.info(new Date().toString());
-            if (data.data.code != 0) {
-                switch (data.data.code) {
-                    case -400:
-                        return "请求错误";
-                    case -403: //播放量是-1也能判断
+        }
+        let data1 = data.data.data;
+        let data2 = {
+            bvid: data1.bvid,
+            aid: data1.aid,
+            videos: data1.videos,
+            tid: data1.tid,
+            tname: data1.tname,
+            copyright: data1.copyright,
+            pic: data1.pic,
+            title: data1.title,
+            pubdate: data1.pubdate,
+            desc: data1.desc,
+            //新版简介
+            //desc_v2:data1.desc_v2[0].raw_text,
+            //attribute: data1.attribute,
+            //rights:data.rights.no_reprint,
+            //owner
+            //稿件总时长(所有分P)单位秒
+            duration: data1.duration,
+            //视频1P cid
+            cid: data1.cid,
+            mid: data1.owner.mid,
+            name: data1.owner.name,
+            //stat
+            view: data1.stat.view,
+            danmaku: data1.stat.danmaku,
+            reply: data1.stat.reply,
+            favorite: data1.stat.favorite,
+            coin: data1.stat.coin,
+            share: data1.stat.share,
+            his_rank: data1.stat.his_rank,
+            like: data1.stat.like,
+            dynamic: data1.dynamic,
+            //dimension
+            width: data1.dimension.width,
+            height: data1.dimension.height
+        }
+        if (gid != null) {
+            const cacheKeys = [`${gid}-${data2.aid}`, `${gid}-${data2.bvid}`]; //支持分群
+            [data2.aid, data2.bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+        }
+        //let sum = 0;
+        //let s = "";
+        //let temp = "0"; //data2.attribute.toString(2); //正整数转成二进制字符串
+        //logger2.info("attribute:" + data2.attribute);
+        //logger2.info("1:" + temp);
+        //let s2 = "";
+        //console.log(Object.keys(attr).length);
+        //https://www.jianshu.com/p/59c3ca6041fe js 检查字典对象的长度
+        /*for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
+            s2 += temp[i];
+            if (temp[i] == "1") {
+                if (s != "") {
+                    if (sum == 21) {
                         if (two == false) {
-                            return getVideoInfo(param, msg, gid, sessdata, true, "禁止游客访问和外链跳转(该视频未登录无法观看，且禁止有Referer非B站域名跳转)");
-                        } else {
-                            return "访问权限不足";
-                        }
-                    case -404:
-                        return "找不到视频信息或者限制指定地区ip可看";
-                    case 62002:
-                        return "稿件不可见";
-                    default:
-                        logger2.info(new Date().toString() + " , " + JSON.stringify(data.data));
-                        return null;
-                }
-            }
-            let data1 = data.data.data;
-            let data2 = {
-                bvid: data1.bvid,
-                aid: data1.aid,
-                videos: data1.videos,
-                tid: data1.tid,
-                tname: data1.tname,
-                copyright: data1.copyright,
-                pic: data1.pic,
-                title: data1.title,
-                pubdate: data1.pubdate,
-                desc: data1.desc,
-                //attribute: data1.attribute,
-                //rights:data.rights.no_reprint,
-                //owner
-                mid: data1.owner.mid,
-                name: data1.owner.name,
-                //stat
-                view: data1.stat.view,
-                danmaku: data1.stat.danmaku,
-                reply: data1.stat.reply,
-                favorite: data1.stat.favorite,
-                coin: data1.stat.coin,
-                share: data1.stat.share,
-                his_rank: data1.stat.his_rank,
-                like: data1.stat.like,
-                dynamic: data1.dynamic,
-                //dimension
-                width: data1.dimension.width,
-                height: data1.dimension.height
-            }
-            if (gid != null) {
-                const cacheKeys = [`${gid}-${data2.aid}`, `${gid}-${data2.bvid}`]; //支持分群
-                [data2.aid, data2.bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
-            }
-            //let sum = 0;
-            //let s = "";
-            //let temp = "0"; //data2.attribute.toString(2); //正整数转成二进制字符串
-            //logger2.info("attribute:" + data2.attribute);
-            //logger2.info("1:" + temp);
-            //let s2 = "";
-            //console.log(Object.keys(attr).length);
-            //https://www.jianshu.com/p/59c3ca6041fe js 检查字典对象的长度
-            /*for (let i = temp.length - 1; i >= 0; i--) { //要反着取出才是从右到左
-                s2 += temp[i];
-                if (temp[i] == "1") {
-                    if (s != "") {
-                        if (sum == 21) {
-                            if (two == false) {
-                                s = s + " , " + "禁止外链跳转(网页限制referer跳转)";
-                            } else {
-                                s = s + " , " + attr[sum];
-                            }
+                            s = s + " , " + "禁止外链跳转(网页限制referer跳转)";
                         } else {
                             s = s + " , " + attr[sum];
                         }
                     } else {
-                        s = s + attr[sum];
+                        s = s + " , " + attr[sum];
                     }
-                }
-                if (sum < Object.keys(attr).length - 1) { //目前知道30种状态0-29
-                    sum++;
                 } else {
-                    break;
+                    s = s + attr[sum];
                 }
-            }*/
-            //logger2.info("2:" + s2);
-            //logger2.info(s);
-            let desc2 = data2.desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
-            let dynamic2 = /(#.*?#)+/g.exec(data2.dynamic); //获取动态话题标签
-            let dynamic3 = data2.dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
-            //1、简介去掉链接并与动态进行比较（都去掉头尾空格），一样取简介；动态去掉动态话题标签与去掉链接的简介进行比较，一样加简介补回话题标签
-            /*if(desc2==dynamic.trim())
-            {
-                console.log("233333333");
             }
-            console.log(desc2);
-            console.log(dynamic);*/
-            let temp = await getsearchlimit(data2.aid);
-            if (temp != null && temp == false) {
-                s += " 该视频可能被限制搜索"
+            if (sum < Object.keys(attr).length - 1) { //目前知道30种状态0-29
+                sum++;
+            } else {
+                break;
             }
-            return {
-                message: `${CQ.img(data2.pic)}
+        }*/
+        //logger2.info("2:" + s2);
+        //logger2.info(s);
+        let desc2 = data2.desc.replace(/(http|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:/~\+#]*[\w\-\@?^=%&/~\+#])?/g, '').trim(); //trim可以去掉开头结尾的空格
+        let dynamic2 = /(#.*?#)+/g.exec(data2.dynamic); //获取动态话题标签
+        let dynamic3 = data2.dynamic.replace(/(#.*?#)+/g, "").trim(); //清理动态话题标签
+        //1、简介去掉链接并与动态进行比较（都去掉头尾空格），一样取简介；动态去掉动态话题标签与去掉链接的简介进行比较，一样加简介补回话题标签
+        /*if(desc2==dynamic.trim())
+        {
+            console.log("233333333");
+        }
+        console.log(desc2);
+        console.log(dynamic);*/
+        let temp = await getsearchlimit(data2.aid);
+        if (temp != null && temp == false) {
+            s += " 该视频可能被限制搜索"
+        }
+        let getvideo_onlineinfo2 = await getvideo_onlineinfo(param, data2.cid);
+        console.log(getvideo_onlineinfo2);
+        return {
+            message: `${CQ.img(data2.pic)}
 ${data2.pic}
 尺寸: 宽${data2.width}px , 高${data2.height}px
 av${data2.aid}
-标题：${data2.title}
-UP：${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
-视频分区：${fenqu[data2.tid] != null ? fenqu[data2.tid] : data2.tname}
+标题:${data2.title}
+UP:${data2.name} 空间链接：https://space.bilibili.com/${data2.mid}
+视频分区:${fenqu[data2.tid] != null ? fenqu[data2.tid] : data2.tname}
 投稿类型: ${data2.copyright == 1 ? " 自制"/*+(no_reprint==1?" 禁止转载":"")*/ : " 转载"}  ${data2.his_rank != 0 ? "历史最高排行: " + data2.his_rank : ""}${s != "" ? "\n视频属性:  " + s : ""}
-发布时间：${dayjs(new Date(data2.pubdate * 1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0", "星期天")}
+发布时间:${dayjs(new Date(data2.pubdate * 1000).toString()).format('YYYY-MM-DD HH:mm:ss 星期d').replace("星期0", "星期天")}
+视频总时长(全部分P):${time(data2.duration)}
 ${desc2 == data2.dynamic.trim() || data2.dynamic == "" ? "[视频简介/动态]: " + data2.desc : (desc2 == dynamic3 ? "[视频简介/动态]: " + data2.desc + "\n" + dynamic2 : "[视频简介]： " + data2.desc + "\n[视频动态]： " + data2.dynamic)}
 ${humanNum(data2.view)}播放 , ${humanNum(data2.videos)}个分P , ${humanNum(data2.danmaku)}弹幕 , ${humanNum(data2.reply)}评论 , 
-${humanNum(data2.favorite)}收藏 , ${humanNum(data2.share)}分享 , ${humanNum(data2.coin)}硬币 , ${humanNum(data2.like)}点赞`,
-                url: `https://www.bilibili.com/video/${bv==true?"av"+data2.aid:data2.bvid}`
-                    /*url: `https://b23.tv/${bv==true?"av"+data2.aid:data2.bvid}`*/
-            }
-        })
+${humanNum(data2.favorite)}收藏 , ${humanNum(data2.share)}分享 , ${humanNum(data2.coin)}硬币 , ${humanNum(data2.like)}点赞
+${getvideo_onlineinfo2 != null ? `所有终端总计在线人数:${getvideo_onlineinfo2.total} , web端实时在线人数:${getvideo_onlineinfo2.count} ，网页端最低在线人数为1 ，若数字为-1则说明查询失败` : "查询在线人数失败"}`,
+            url: `https://www.bilibili.com/video/${bv == true ? "av" + data2.aid : data2.bvid}`
+            /*url: `https://b23.tv/${bv==true?"av"+data2.aid:data2.bvid}`*/
+        }
+    })
         .catch(e => {
             logError(`${new Date().toString()} [error] get bilibili video info ${param},${msg}`);
             logError(e);
@@ -343,18 +354,36 @@ ${humanNum(data2.favorite)}收藏 , ${humanNum(data2.share)}分享 , ${humanNum(
             return null;
         });
 }
+//https://www.runoob.com/w3cnote/javascript-two-decimal.html JavaScript 保留两位小数
+/**
+四舍五入
+以下处理结果会四舍五入:
+
+var num =2.446242342;
+num = num.toFixed(2);  // 输出结果为 2.45
+不四舍五入
+以下处理结果不会四舍五入。
+
+第一种，先把小数变整数：
+
+Math.floor(15.7784514000 * 100) / 100   // 输出结果为 15.77
+第二种，当作字符串，使用正则匹配：
+
+Number(15.7784514000.toString().match(/^\d+(?:\.\d{0,2})?/))   // 输出结果为 15.77,不能用于整数如 10 必须写为10.0000
+注意：如果是负数，请先转换为正数再计算，最后转回负数
+ */
 
 function getsearchlimit(av) {
     //http://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=
     logger2.info(`getsearchlimit:https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=${av}`);
     //http://axios-js.com/zh-cn/docs/ axios中文文档|axios中文网
     return get(`https://api.bilibili.com/x/web-interface/search/type?search_type=video&keyword=${av}`, {
-            headers: {
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
-                'origin': 'https://www.bilibili.com',
-                'referer': 'https://www.bilibili.com/'
-            }
-        })
+        headers: {
+            'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.141 Safari/537.36 Edg/87.0.664.75',
+            'origin': 'https://www.bilibili.com',
+            'referer': 'https://www.bilibili.com/'
+        }
+    })
         .then(data => {
             logger2.info("getsearchlimit1:" + JSON.stringify(data.data) + "\nav:" + av);
             let temp = data.data.data.result;
@@ -382,33 +411,86 @@ function getsearchlimit(av) {
         });
 }
 
-function getvideojumplimit(av) {
+//http://api.bilibili.com/x/player/online/total?aid=2&cid=62131
 
+function getvideo_onlineinfo(param, cid) {
+    //console.log(`https://api.bilibili.com/x/player/online/total?${stringify(param)}&cid=${cid}`);
+    return get(`https://api.bilibili.com/x/player/online/total?${stringify(param)}&cid=${cid}`).then(
+        data => {
+            logger2.info("getvideo_onlineinfo:" + JSON.stringify(data.data));
+            if (data.data.code == 0) {
+                let total = -1;
+                let count = -1;
+                if (data.data.data.show_switch.total == true) {
+                    total = data.data.data.total;
+                }
+                if (data.data.data.show_switch.count == true) {
+                    count = data.data.data.count;
+                }
+                let info = {
+                    total: total,
+                    count: count
+                }
+                return info;
+            }
+            else {
+                return null;
+            }
+
+        }
+        /*
+https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/video/online.md
+        code	num	返回值	0：成功
+-400：请求错误
+-404：无视频
+        {
+ "code": 0,
+ "message": "0",
+ "ttl": 1,
+ "data": {
+    "total": "5",
+    "count": "3",
+            "show_switch": {
+            "total": true,超过一定数值会简略数值，例如1000+
+            "count": true
+        },
+    "abtest": {
+    "group": "b"
+    }
+    }
+ }
+        */
+    ).catch(e => {
+        logger2.error(`${new Date().toString()} [error] getvideo_onlineinfo:` + e);
+    });
+}
+
+function getvideojumplimit(av) {
 }
 
 function getSearchVideoInfo(keyword) {
     return get(`https://api.bilibili.com/x/web-interface/search/all/v2?${stringify({ keyword })}`).then(
-            ({
+        ({
+            data: {
                 data: {
-                    data: {
-                        result
-                    },
+                    result
                 },
-            }) => {
-                const videos = result.find(({
-                    result_type: rt
-                }) => rt === 'video').data;
-                if (videos.length === 0) return null;
-                const {
-                    author,
-                    aid,
-                    bvid,
-                    title,
-                    pic,
-                    play,
-                    video_review
-                } = videos[0];
-                return `${CQ.img(`http:${pic}`)}
+            },
+        }) => {
+            const videos = result.find(({
+                result_type: rt
+            }) => rt === 'video').data;
+            if (videos.length === 0) return null;
+            const {
+                author,
+                aid,
+                bvid,
+                title,
+                pic,
+                play,
+                video_review
+            } = videos[0];
+            return `${CQ.img(`http:${pic}`)}
 （搜索）av${aid}
 ${title.replace(/<([^>]+?)[^>]+>(.*?)<\/\1>/g, '$2')}
 UP：${author}
@@ -680,13 +762,13 @@ async function getAvBvFromMsg(msg) {
     let search;
     if ((search = getAvBvFromNormalLink(msg))) return search;
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getAvBvFromShortLink(`http://${search[0]}`);
-    if ((search = /(^([Aa][Vv])[0-9]$)|((BV|bv)1[a-zA-Z1-9]{2}4[a-zA-Z1-9]{1}1[a-zA-Z1-9]{1}7[a-zA-Z1-9]{2})/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
+    if ((search = /(^([Aa][Vv])[0-9]+$)|((BV|bv)1[a-zA-Z1-9]{2}4[a-zA-Z1-9]{1}1[a-zA-Z1-9]{1}7[a-zA-Z1-9]{2})/.exec(msg))) return getAvBvFromShortLink(`http://www.bilibili.com/video/${search[0]}`); //解析av号
     return null;
 }
 //获取cv号
 async function getCvFromMsg(msg) {
     let search;
-    if ((search = /bilibili\.com\/read\/cv([0-9]+$)/.exec(msg))) return search[1]; //专栏
+    if ((search = /bilibili\.com\/read\/cv([0-9]+)/.exec(msg))) return search[1]; //专栏
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg))) return getCvFromShortLink(`http://${search[0]}`);
     if ((search = /^[Cc][Vv][0-9]+$/.exec(msg))) return getCvFromShortLink(`http://www.bilibili.com/read/${search[0]}`); //解析cv号
     return null;
@@ -694,19 +776,20 @@ async function getCvFromMsg(msg) {
 //获取mid号
 async function getMdFromMsg(msg, secord = false) {
     let search;
-    if ((search = /bilibili\.com\/bangumi\/media\/md([0-9]+$)/.exec(msg))) {
+    if ((search = /bilibili\.com\/bangumi\/media\/md([0-9]+)/.exec(msg))) {
         if (search != null) {
             return search[1]; //返回md值
         }
     }
     //logger2.info("msg:" + msg);
-    if ((search = /bilibili\.com\/bangumi\/(media|play)\/(ep[0-9]+$|ss[0-9]+$)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
-    if ((search = /(b23|acg)\.tv\/(ep[0-9]+$|ss[0-9]+$)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
+    if ((search = /bilibili\.com\/bangumi\/(media|play)\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
+    if ((search = /(b23|acg)\.tv\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg)) && secord == false) return getMdFromMsg(await getMdFromShortLink(`http://${search[0]}`), true);
+    if ((search = /^[Ee][Pp][0-9]+$|^[Ss][Ss][0-9]+$/.exec(msg))) return (await getmedia_id(search[0])).media_id;
     return null;
 }
-
-
+//https://github.com/Tsuk1ko/cq-picsearcher-bot/commit/936166e37559689be415d614a325aceb558fb869
+//const searchDynamic = /t\.bilibili\.com\/(\d+)/i.exec(link) || /m\.bilibili\.com\/dynamic\/(\d+)/i.exec(link) || {};
 //直接获取链接，所以无视小程序变化
 async function bilibili(context, replyFunc) {
     const msg = context.message;
@@ -766,10 +849,15 @@ async function bilibili(context, replyFunc) {
                 [aid, bvid].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
             const reply = await getVideoInfo(param, msg, gid);
-            if (reply != null) {
+            if (reply != null && reply.message != null) {
                 replyFunc(context, reply.message);
-                logger2.info("reply.url:"+reply.url);
+                logger2.info("reply.url:" + reply.url);
                 replyFunc(context, reply.url);
+                return;
+            }
+            else {
+                logger2.info("getVideoInfoerr:" + reply);
+                replyFunc(context, reply);
                 return;
             }
         } else if (param2 != null) { //新增可解析番剧，纪录片，电影，电视剧信息

@@ -29,6 +29,7 @@ import node_localStorage2 from 'node-localstorage';
 import dayjs from 'dayjs';
 import broadcast from './modules/broadcast';
 import bilibili from './modules/plugin/bilibili';
+//import sign from './modules/sign';
 import logError from './modules/logError';
 import NodeCache from 'node-cache';
 import path from 'path';
@@ -37,6 +38,7 @@ import JOIN from 'path'
 const join = JOIN.join;
 
 //常量
+const ext = ['', '.jpg', '.mp4'];
 const node_localStorage = node_localStorage2.LocalStorage;
 const qiandaosuo = new node_localStorage('../qiandaosuo'); //跨插件签到锁，转推时禁止签到
 const ocrspace = new node_localStorage('./ocrspace');
@@ -77,30 +79,50 @@ logger2.info('搜图插件,' + t.toString() + dayjs(t.toString()).format(' A 星
  * @returns {Array}
  */
 //https://www.imooc.com/wenda/detail/459466 nodejs的FS或path如何获取某文件夹下的所有文件的文件名呢。
-function findSync(startPath) {
-    let result = [];
+function findSync(startPath, jishu = false) {
+    let isFile_result = [];
+    //let isDirectory_result = [];
 
-    function finder(path) {
-        let files = fs.readdirSync(path);
+    function finder(pathx, isdirectory = false) {
+        let files = fs.readdirSync(pathx);
         files.forEach((val, index) => {
-            let fPath = join(path, val);
+            let fPath = join(pathx, val);
             let stats = fs.statSync(fPath);
-            //if(stats.isDirectory()) finder(fPath);
-            if (stats.isFile()) {
-                //logger.info(fPath);
-                result.push(fPath);
+            if (jishu == false) {
+                if (stats.isDirectory() == true) {
+                    finder(fPath, true);
+                    //isDirectory_result.push(fPath);
+                    //logger2.info("是文件夹" + fPath)
+                }
+                else if (stats.isFile() == true && isdirectory == true) {
+                    //logger.info(fPath);
+                    isFile_result.push(fPath);
+                    //logger2.info("是文件夹中的文件" + fPath)
+                }
+                else if (stats.isFile() == true) {
+                    //logger.info(fPath);
+                    isFile_result.push(fPath);
+                    //logger2.info("是文件" + fPath)
+                }
+            } else {
+                let extname = path.extname(fPath).split(".")[1];
+                if (extname != "txt") {//计算图片视频文件数，排除txt说明文件
+                    isFile_result.push(fPath);
+                    //logger2.info("计算图片视频文件数，排除txt说明文件:" + fPath)
+                }
             }
+
         });
     }
     finder(startPath);
-    return result;
+    return isFile_result;
 }
 
 async function start() {
     if (setting.akhr.enable) Akhr.init().catch(console.error);
     if (setting.reminder.enable) rmdInit(replyMsg);
     pic1 = await new Promise(function (resolve, reject) {
-        resolve(findSync('./tuku').length - 1);
+        resolve(findSync('./tuku', true).length - 1);
     });
 
     logger2.info("签到图数：" + pic1);
@@ -507,13 +529,15 @@ async function start() {
 
     //群组消息处理
     var qiandaoxianzhi = false;
-
-    function groupMsg(context) {
+    async function groupMsg(context) {
         if (context.message_type == "group") {
             //logger2.info(JSON.stringify(context));
             let uid = context.user_id;
             let cacheKeys = `${uid}`; //防御群聊狂刷，计数制
             let cacheKeys2 = [`${uid}-${true}`]; //防御群聊狂刷，延时2秒
+            let sign = false;//是否是签到
+            let temp2 = 0;
+            let temp = qiandaotu.getItem('jishu');
             if (uid) {
                 if ( /*cache2.has(cacheKeys)*/ cache2.get(cacheKeys) == 0) {
                     return;
@@ -543,6 +567,7 @@ async function start() {
                 returnmsg(context, 1);
                 return;
             }
+            //if (logger.canSign(context.user_id)) {
             if (signReg.exec(context.message)) {
                 //签到
                 //e.stopPropagation();
@@ -555,7 +580,6 @@ async function start() {
                         break;
                     }
                 }
-
                 if (qiandaoxianzhi == false && (qiandaosuo.getItem("qiandaosuo") == "false" || qiandaosuo.getItem("qiandaosuo") == undefined) && blackgroup == false) {
                     qiandaoxianzhi = true;
                     let t = setTimeout(() => {
@@ -563,10 +587,11 @@ async function start() {
                         qiandaoxianzhi = false;
                     }, signdelay);
                     cache(uid, true);
-                    let temp = qiandaotu.getItem('jishu');
-                    let pictemp = null;
-                    let temp2 = 0;
-                    if (pic1 != -1) {
+                    qiandaotupianjishu++;
+                    logger2.info("签到最大限制数(-1等于不限制):" + qiandaoxianzhishu);
+                    logger2.info("签到数:" + qiandaotupianjishu);
+                    //签到和抽签功能基本合并了，只剩统计和限制功能
+                    if (qiandaotupianjishu <= qiandaoxianzhishu || qiandaoxianzhishu == -1) { //签到总数限制
                         if (temp == null || parseInt(temp) == pic1) {
                             qiandaotu.setItem('jishu', "0");
                         } else {
@@ -574,27 +599,8 @@ async function start() {
                             temp2++;
                             qiandaotu.setItem('jishu', temp2);
                         }
-                        pictemp = path.join(__dirname, "./tuku/" + qiandaotu.getItem('jishu').toString() + ".jpg");
+                        sign = true;
                     }
-                    qiandaotupianjishu++;
-                    logger2.info("签到最大限制数(-1等于不限制)：" + qiandaoxianzhishu);
-                    logger2.info("签到数：" + qiandaotupianjishu);
-                    if (qiandaotupianjishu <= qiandaoxianzhishu || qiandaoxianzhishu == -1) { //签到总数限制
-                        if (logger.canSign(context.user_id)) {
-                            if (pictemp != null) {
-                                replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + `\n[CQ:image,file=file:///${pictemp}]\n` + temp2)
-                            } else {
-                                replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign);
-                            }
-                            return true;
-                        }
-                        if (pictemp != null) {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed + `\n[CQ:image,file=file:///${pictemp}]\n` + temp2)
-                        } else {
-                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.signed);
-                        }
-                    }
-                    return true;
                 }
             } else if (signReg2.exec(context.message)) {
                 //抽签
@@ -608,7 +614,6 @@ async function start() {
                         break;
                     }
                 }
-
                 if (qiandaoxianzhi == false && (qiandaosuo.getItem("qiandaosuo") == "false" || qiandaosuo.getItem("qiandaosuo") == undefined) && blackgroup == false) {
                     qiandaoxianzhi = true;
                     let t = setTimeout(() => {
@@ -616,98 +621,227 @@ async function start() {
                         qiandaoxianzhi = false;
                     }, signdelay);
                     cache(uid, true);
-                    let temp = getIntRand(pic1);
-                    let pictemp = null;
-                    if (temp != -1) {
-                        pictemp = path.join(__dirname, "./tuku/" + temp.toString() + ".jpg");
-                    }
                     chouqiantupianjishu++;
-                    logger2.info("抽签最大限制数(-1等于不限制)：" + chouqianxianzhishu);
-                    logger2.info("抽签数：" + chouqiantupianjishu);
+                    logger2.info("抽签最大限制数(-1等于不限制):" + chouqianxianzhishu);
+                    logger2.info("抽签数:" + chouqiantupianjishu);
                     if (chouqiantupianjishu <= chouqianxianzhishu || chouqianxianzhishu == -1) { //抽签总数限制
-                        if (pictemp != null) {
-                            replyMsg(context, setting.replys.sign2 + `\n[CQ:image,file=file:///${pictemp}]\n` + temp, true, false)
-                        } else {
-                            replyMsg(context, "未找到图片！", true, false);
+                        temp2 = getIntRand(pic1);//从0-总签到图数中选一个数字
+                        sign = true;
+                    }
+                }
+            }
+            //还有补一个抽指定签
+            ///^(签到|抽签)(\d+)$/.exec("签到1")
+            let s = /^(签到|抽签)(\d+)$/.exec(context.message);
+            if (s != null) {
+                logger2.info("抽指定签" + s[2]);
+                let n = parseInt(s[2]);
+                if (n <= pic1 && n >= 0) {
+                    temp2 = n;
+                    sign = true;
+                }
+            }
+
+            if (sign == true) {
+                let pictemp = null;
+                let tmp = "";
+                let tmp2 = "";
+                let leixing0 = "";//储存主目录中的图片视频路径(其实是文件后缀名，只有一个)
+                let leixing1;//储存次级目录中的图片视频路径(真的是路径，文件数不限)
+                let result0 = ""//储存说明文本
+                let result1 = [];//储存合并转发内容
+                if (pic1 != -1) {
+                    pictemp = path.join(__dirname, "./tuku/" + temp2);
+                    //检查文件是否存在于当前目录中
+                    logger2.info(ext.length);
+                    for (let index = 0; index < ext.length; index++) {
+                        let item = ext[index];
+                        logger2.info(ext[index]);
+                        tmp = pictemp + item
+                        tmp2 = await new Promise(function (resolve, reject) {
+                            fs.access(`${tmp}`, fs.constants.F_OK, err => {
+                                if (err) {
+                                    logger2.info(tmp + ',不存在于当前目录中')
+                                    resolve(false)
+                                }
+                                else {
+                                    logger2.info(tmp + ',存在于当前目录中')
+                                    resolve(true)
+                                }
+                            })
+                        });
+                        if (tmp2 == true) {
+                            if (item == "") {
+                                //是文件夹,进入目录搜索一遍，获取文件路径
+                                leixing1 = await new Promise(function (resolve, reject) {
+                                    resolve(findSync(tmp));//返回数组
+                                });
+                                result0 = await new Promise(function (resolve, reject) {
+                                    fs.readFile(`${path.join(pictemp + "/" + temp2 + ".txt")}`, function (err, data) {
+                                        if (err) {
+                                            logger2.info("读取签到说明失败:" + err);
+                                            resolve("");
+                                        }
+                                        else {
+                                            logger2.info("读取签到说明成功:" + data.toString());
+                                            resolve(data.toString());
+                                        }
+                                    })
+                                });
+                                break;
+                            }
+                            leixing0 = item;
+                            //尝试读取签到说明
+                            result0 = await new Promise(function (resolve, reject) {
+                                fs.readFile(`${pictemp + ".txt"}`, function (err, data) {
+                                    if (err) {
+                                        logger2.info("读取签到说明失败:" + err);
+                                        resolve("");
+                                    }
+                                    else {
+                                        logger2.info("读取签到说明成功:" + data.toString());
+                                        resolve(data.toString());
+                                    }
+                                })
+                            });
+                            break;
                         }
+                        logger2.info(tmp + ":" + tmp2);
+                        /*
+                        作者：静昕妈妈芦培培
+                        链接：https://www.jianshu.com/p/44b37920f837
+                        来源：简书
+                        著作权归作者所有。商业转载请联系作者获得授权，非商业转载请注明出处。*/
+                    }
+                    //统一规定若签到图是文件夹，则所有文件在文件夹里，txt的文件名=上级文件夹，图片用1，2，3，4
+                    if (leixing0 != "") {
+                        if (leixing0 == ".jpg") {
+                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + `\n[CQ:image,file=file:///${pictemp + leixing0}]\n` + temp2)
+                        }
+                        else {
+                            replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + temp2)
+                            replyMsg(context, `[CQ:video,cache=0,file=file:///${pictemp + leixing0},c=3]`)
+                            //视频会吞掉所有文本，只能单独发
+                        }
+                        if (result0 != "") {
+                            replyMsg(context, `${result0}`)
+                        }
+                    }
+                    else if (leixing1.length != 0) {
+                        let extname = ""
+                        replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + temp2)
+                        for (let index = 0; index < leixing1.length; index++) {
+                            let item2 = leixing1[index]
+                            //获取文件的后缀名
+                            extname = path.extname(item2).split(".")[1]
+                            logger2.info("item2:" + item2 + ",extname:" + extname)
+                            if (extname == "jpg" || extname == "jpeg" || extname == "png" || extname == "gif") {
+                                result1.push(`[CQ:image,file=file:///${item2}]\n`)
+                                logger2.info(`[CQ:image,file=file:///${item2}]\n`)
+                            }
+                            else if (extname == "mp4") {
+                                //视频无法合并转发?
+                                result1.push(`[CQ:video,cache=0,file=file:///${item2},c=3}]`)
+                                logger2.info(`[CQ:video,cache=0,file=file:///${item2},c=3}]`)
+                                //result1.push(`[CQ:video,cache=0,file=file:///${item2},c=3,cover=file:///${path.join(__dirname, "./black.jpg")}]`)
+                                //logger2.info(`[CQ:video,cache=0,file=file:///${item2},c=3,cover=file:///${path.join(__dirname, "./black.jpg")}]`)
+                            }
+                        }
+                        if (result0 != "") {
+                            result1.push(`${result0}`)
+                            logger2.info(`result0:${result0}`)
+                        }
+                        logger2.info("result1:" + result1)
+                        sendGroupForwardMsg(context, result1)
+                    }
+                    else {
+                        logger2.info("失败的一次签到:" + temp2);
                     }
                     return true;
                 }
             }
-            //进入或退出搜图模式
-            const {
-                group_id,
-                user_id
-            } = context;
+            // }
+            //else {
+            //   logger2.info("该用户名还不能签到:" + context.user_id)
+            // }
+        }
+        return true;
 
-            if (searchModeOnReg.exec(context.message)) {
-                //进入搜图
-                //e.stopPropagation();
-                cache(uid, true);
-                if (
-                    logger.smSwitch(group_id, user_id, true, () => {
-                        replyMsg(context, setting.replys.searchModeTimeout, true);
-                    })
-                )
-                    replyMsg(context, setting.replys.searchModeOn, true);
-                else replyMsg(context, setting.replys.searchModeAlreadyOn, true);
-            } else if (searchModeOffReg.exec(context.message)) {
-                //e.stopPropagation();
-                //退出搜图
-                cache(uid, true);
-                if (logger.smSwitch(group_id, user_id, false)) replyMsg(context, setting.replys.searchModeOff, true);
-                else replyMsg(context, setting.replys.searchModeAlreadyOff, true);
+
+        //进入或退出搜图模式
+        const {
+            group_id,
+            user_id
+        } = context;
+
+        if (searchModeOnReg.exec(context.message)) {
+            //进入搜图
+            //e.stopPropagation();
+            cache(uid, true);
+            if (
+                logger.smSwitch(group_id, user_id, true, () => {
+                    replyMsg(context, setting.replys.searchModeTimeout, true);
+                })
+            )
+                replyMsg(context, setting.replys.searchModeOn, true);
+            else replyMsg(context, setting.replys.searchModeAlreadyOn, true);
+        } else if (searchModeOffReg.exec(context.message)) {
+            //e.stopPropagation();
+            //退出搜图
+            cache(uid, true);
+            if (logger.smSwitch(group_id, user_id, false)) replyMsg(context, setting.replys.searchModeOff, true);
+            else replyMsg(context, setting.replys.searchModeAlreadyOff, true);
+        }
+
+        //搜图模式检测
+        let smStatus = logger.smStatus(group_id, user_id);
+        if (smStatus) {
+            //获取搜图模式下的搜图参数
+            const getDB = () => {
+                let cmd = /^(all|pixiv|danbooru|book|anime)$/.exec(context.message);
+                if (cmd) return snDB[cmd[1]] || -1;
+                return -1;
+            };
+
+            //切换搜图模式
+            const cmdDB = getDB();
+            if (cmdDB !== -1) {
+                logger.smSetDB(group_id, user_id, cmdDB);
+                smStatus = cmdDB;
+                replyMsg(context, `已切换至[${context.message}]搜图模式√`);
             }
 
-            //搜图模式检测
-            let smStatus = logger.smStatus(group_id, user_id);
-            if (smStatus) {
-                //获取搜图模式下的搜图参数
-                const getDB = () => {
-                    let cmd = /^(all|pixiv|danbooru|book|anime)$/.exec(context.message);
-                    if (cmd) return snDB[cmd[1]] || -1;
-                    return -1;
-                };
+            //有图片则搜图
+            if (hasImage(context.message)) {
+                //刷新搜图TimeOut
+                logger.smSwitch(group_id, user_id, true, () => {
+                    replyMsg(context, setting.replys.searchModeTimeout, true);
+                });
+                //e.stopPropagation();
+                searchImg(context, smStatus);
+            }
 
-                //切换搜图模式
-                const cmdDB = getDB();
-                if (cmdDB !== -1) {
-                    logger.smSetDB(group_id, user_id, cmdDB);
-                    smStatus = cmdDB;
-                    replyMsg(context, `已切换至[${context.message}]搜图模式√`);
-                }
-
-                //有图片则搜图
-                if (hasImage(context.message)) {
-                    //刷新搜图TimeOut
-                    logger.smSwitch(group_id, user_id, true, () => {
-                        replyMsg(context, setting.replys.searchModeTimeout, true);
-                    });
-                    //e.stopPropagation();
-                    searchImg(context, smStatus);
-                }
-
-            } else if (setting.repeat.enable) {
-                //复读（
-                //随机复读，rptLog得到当前复读次数
-                cache(uid, true);
-                if (logger.rptLog(group_id, user_id, context.message) >= setting.repeat.times && getRand() <= setting.repeat.probability) {
-                    logger.rptDone(group_id);
-                    //延迟2s后复读
-                    let t = setTimeout(() => {
-                        clearTimeout(t);
-                        replyMsg(context, context.message);
-                    }, 2000);
-                } else if (getRand() <= setting.repeat.commonProb) {
-                    //平时发言下的随机复读
-                    let t = setTimeout(() => {
-                        clearTimeout(t);
-                        replyMsg(context, context.message);
-                    }, 2000);
-                }
+        } else if (setting.repeat.enable) {
+            //复读（
+            //随机复读，rptLog得到当前复读次数
+            cache(uid, true);
+            if (logger.rptLog(group_id, user_id, context.message) >= setting.repeat.times && getRand() <= setting.repeat.probability) {
+                logger.rptDone(group_id);
+                //延迟2s后复读
+                let t = setTimeout(() => {
+                    clearTimeout(t);
+                    replyMsg(context, context.message);
+                }, 2000);
+            } else if (getRand() <= setting.repeat.commonProb) {
+                //平时发言下的随机复读
+                let t = setTimeout(() => {
+                    clearTimeout(t);
+                    replyMsg(context, context.message);
+                }, 2000);
             }
         }
     }
+
 
     function cache(uid, cache = false) {
         if (cache == true) {
@@ -1198,7 +1332,7 @@ async function start() {
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
         pic1 = await new Promise(function (resolve, reject) {
-            resolve(findSync('./tuku').length - 1);
+            resolve(findSync('./tuku', true).length - 1);
         });
         logger2.info("签到图数：" + pic1);
         logger2.info('每日累计次数清0, ' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
@@ -1403,6 +1537,51 @@ async function start() {
     }
 
     /**
+     * 发送合并转发
+     *
+     * @param {number} group_id 群号
+     * @param {string[]} msgs 消息数组
+     */
+    //https://www.jianshu.com/p/d628fe9448e0 不可见字符的坑 \u200b
+    function sendGroupForwardMsg(content, msgs) {
+        return bot('send_group_forward_msg', {
+            group_id: content.group_id,
+            messages: msgs.map(content => ({
+                type: 'node',
+                data: {
+                    name: '\u200b',
+                    uin: String(setting.bot),
+                    content,
+                },
+            })),
+        }).then(data => {
+            logger2.info(new Date().toString() + "合并转发发送到QQ群" + JSON.stringify(data))
+        }).catch(err => {
+            logger2.error(new Date().toString() + "合并转发发送到QQ群" + JSON.stringify(err))
+        });
+    }
+    //检查链接安全性
+    //https://docs.go-cqhttp.org/api/#%E6%A3%80%E6%9F%A5%E9%93%BE%E6%8E%A5%E5%AE%89%E5%85%A8%E6%80%A7
+    function check_url_safelyx(url) {
+        return bot('check_url_safely', {
+            url: url,
+        }).then(data => {
+            logger2.info(new Date().toString() + "需要检查的链接" + JSON.stringify(data))
+        }).catch(err => {
+            logger2.error(new Date().toString() + "需要检查的链接" + JSON.stringify(err))
+        });
+    }
+    /*
+    参数
+    
+    字段	类型	说明
+    url	string	需要检查的链接
+    响应数据
+    
+    字段	类型	说明
+    level	int	安全等级, 1: 安全 2: 未知 3: 危险
+    */
+    /**
      * 回复搜图消息
      *
      * @param {object} context 消息对象
@@ -1481,16 +1660,71 @@ async function start() {
         }
         return m;
     }
+    /*var temp = [];
+    temp.push("test");
+    temp.push(`[CQ:image,file=file:///${path.join(__dirname, "./tuku/0.jpg")}]`);
+
+    let temp2 = await new Promise(function (resolve, reject) {
+        fs.readFile(`${path.join(__dirname, "./tuku/0.txt")}`, function (err, data) {
+            if (err) {
+                console.log(err);
+                resolve(err);
+            }
+            console.log("我是异步执行的结果集：" + data.toString());
+            resolve(data.toString());
+        })
+    });
+    let temp3 = await new Promise(function (resolve, reject) {
+        fs.readFile(`${path.join(__dirname, "./tuku/0.txt")}`, function (err, data) {
+            if (err) {
+                console.log(err);
+                resolve(err);
+            }
+            console.log("我是异步执行的结果集2：" + data.toString());
+            resolve(data.toString());
+        })
+    });*/
+    /*ext.forEach(item => {
+        //检查文件是否存在于当前目录中
+        console.log(`${path.join(__dirname, "./tuku/1")}.${item}`);
+    });*/
+    /*
+    // 设置编码格式
+fs.readFile('./test.txt', 'utf-8', function(err, data) {
+    // 读取文件失败/错误
+    if (err) {
+        throw err;
+    }
+    // 读取文件成功
+    console.log('utf-8: ', data.toString());
+  //直接用console.log(data);也可以
+});
+    */
+    /*
+     temp.push(temp2);
+     sendGroupForwardMsg(0, temp)
+     bot('send_group_msg', {
+         group_id: 0,
+         message: "0",
+     }).then(data => {
+         logger2.info(new Date().toString() + "发送到QQ群:" + "," + JSON.stringify(data))
+     }).catch(err => {
+         logger2.error(new Date().toString() + "发送到QQ群:" + "," + JSON.stringify(err))
+     });*/
+    //https://www.cnblogs.com/wenqd/p/df910f6364e17d3b92998f2e8d73148d.html nodejs读取本地txt文件并输出到浏览器 
+    //异步执行后回调
+    check_url_safelyx("https://www.baidu.com/");
 }
 start();
 
-/*async function test() {
+async function test() {
     let temp2 = await new Promise(function (resolve, reject) {
-        resolve(findSync('./tuku').length);
+        resolve(findSync('./tuku'));
     });
-    console.log(temp2);
+    //console.log(temp2);
+
 }
-test();*/
+//test();
 //https://www.imooc.com/wenda/detail/459466 nodejs的FS或path如何获取某文件夹下的所有文件的文件名呢。
 /*(fs.exists(imgs[i], function (exists) {
     resolve(exists);

@@ -568,7 +568,7 @@ async function start() {
                 return;
             }
             //if (logger.canSign(context.user_id)) {
-            if (signReg.exec(context.message)) {
+            if (signReg.exec(context.message.trim())) {
                 //签到
                 //e.stopPropagation();
                 let blackgroup = false;
@@ -602,7 +602,7 @@ async function start() {
                         sign = true;
                     }
                 }
-            } else if (signReg2.exec(context.message)) {
+            } else if (signReg2.exec(context.message.trim())) {
                 //抽签
                 //e.stopPropagation();
                 let blackgroup = false;
@@ -632,7 +632,7 @@ async function start() {
             }
             //还有补一个抽指定签
             ///^(签到|抽签)(\d+)$/.exec("签到1")
-            let s = /^(签到|抽签)(\d+)$/.exec(context.message);
+            let s = /^(签到|抽签)(\d+)$/.exec(context.message.trim());
             if (s != null) {
                 logger2.info("抽指定签" + s[2]);
                 let n = parseInt(s[2]);

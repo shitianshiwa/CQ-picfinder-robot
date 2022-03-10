@@ -278,9 +278,8 @@ async function start() {
         bot('get_version_info').then(data2 => {
             //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             //> 注意: 所有统计信息都将在重启后重制
-            let stats = `
-接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
-接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
+            let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
+                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
             logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
             bot('send_private_msg', {
@@ -344,9 +343,8 @@ async function start() {
              */
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
-                    let stats = `
-接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
-接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
+                    let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
+                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                     replyMsg(context, "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
@@ -1341,9 +1339,8 @@ async function start() {
         logger2.info('每日累计次数清0, ' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
         bot('get_status').then(data1 => {
             bot('get_version_info').then(data2 => {
-                let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}%
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+                let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
+                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
                 logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                 logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                 bot('send_private_msg', {

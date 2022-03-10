@@ -269,15 +269,18 @@ async function start() {
             bot.on('message', groupMsg);
         }
     }
-
+ /*
+    {"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null,"stat":{"PacketReceived":43,"PacketSent":34,"PacketLost":0,"MessageReceived":0,"MessageSent":0,"LastMessageTime":0,"DisconnectTimes":0,"LostTimes":0}}
+    get_status 在go-cqhttp  v1.0.0-rc1 有关键词变化
+    */
     //连接相关监听
     bot('get_status').then(data1 => {
         bot('get_version_info').then(data2 => {
             //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             //> 注意: 所有统计信息都将在重启后重制
             let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
+接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
             logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
             bot('send_private_msg', {
@@ -337,13 +340,13 @@ async function start() {
             {"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null}
 {"coolq_directory":"/home/user/coolq/gocqhttp","coolq_edition":"pro","go-cqhttp":true,"plugin_build_configuration":"release","plugin_build_number":99,"plugin_version":"4.15.0","runtime_os":"linux","runtime_version":"go1.14.7"}
 {"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null,"stat":{"packet_received":66,"packet_sent":62,"packet_lost":2,"message_received":0,"message_sent":1,"disconnect_times":0,"lost_times":0}},"retcode":0,"status":"ok"}
-
+旧版本的
              */
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
                     let stats = `
-接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}%
-接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
+接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
+接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                     replyMsg(context, "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);

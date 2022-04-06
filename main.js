@@ -38,7 +38,7 @@ import JOIN from 'path'
 const join = JOIN.join;
 
 //常量
-const ext = ['', '.jpg', '.mp4'];
+const ext = ['', '.jpeg', '.gif', '.png', '.jpg', '.mp4'];
 const node_localStorage = node_localStorage2.LocalStorage;
 const qiandaosuo = new node_localStorage('../qiandaosuo'); //跨插件签到锁，转推时禁止签到
 const ocrspace = new node_localStorage('./ocrspace');
@@ -122,7 +122,7 @@ async function start() {
     if (setting.akhr.enable) Akhr.init().catch(console.error);
     if (setting.reminder.enable) rmdInit(replyMsg);
     pic1 = await new Promise(function (resolve, reject) {
-        resolve(findSync('./tuku', true).length - 1);
+        resolve(findSync('./tuku', true).length);
     });
 
     logger2.info("签到图数：" + pic1);
@@ -269,7 +269,7 @@ async function start() {
             bot.on('message', groupMsg);
         }
     }
- /*
+    /*
     {"app_enabled":true,"app_good":true,"app_initialized":true,"good":true,"online":true,"plugins_good":null,"stat":{"PacketReceived":43,"PacketSent":34,"PacketLost":0,"MessageReceived":0,"MessageSent":0,"LastMessageTime":0,"DisconnectTimes":0,"LostTimes":0}}
     get_status 在go-cqhttp  v1.0.0-rc1 有关键词变化
     */
@@ -279,7 +279,7 @@ async function start() {
             //https://www.jb51.net/article/134067.htm js保留两位小数方法总结
             //> 注意: 所有统计信息都将在重启后重制
             let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
-                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
+接受消息: ${data1.stat.message_received || data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent || data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times || data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times || data1.stat.LostTimes}`;
             logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
             logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
             bot('send_private_msg', {
@@ -343,8 +343,8 @@ async function start() {
              */
             bot('get_status').then(data1 => {
                 bot('get_version_info').then(data2 => {
-                    let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
-                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
+                    let stats = `接受包: ${data1.stat.packet_received} ， 发送包: ${data1.stat.packet_sent} ， 丢包: ${data1.stat.packet_lost} ， 丢包率：${(data1.stat.packet_lost / (data1.stat.packet_lost + data1.stat.packet_sent) * 100).toFixed(3)}%
+接受消息: ${data1.stat.message_received} ， 发送消息: ${data1.stat.message_sent} ， TCP链接断开: ${data1.stat.disconnect_times} ， 账号掉线: ${data1.stat.lost_times}`;
                     logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                     logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                     replyMsg(context, "搜图插件已启动\ngo-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version);
@@ -648,7 +648,7 @@ async function start() {
                 let tmp = "";
                 let tmp2 = "";
                 let leixing0 = "";//储存主目录中的图片视频路径(其实是文件后缀名，只有一个)
-                let leixing1;//储存次级目录中的图片视频路径(真的是路径，文件数不限)
+                let leixing1 = new Array();//储存次级目录中的图片视频路径(真的是路径，文件数不限)
                 let result0 = ""//储存说明文本
                 let result1 = [];//储存合并转发内容
                 if (pic1 != -1) {
@@ -716,7 +716,7 @@ async function start() {
                     }
                     //统一规定若签到图是文件夹，则所有文件在文件夹里，txt的文件名=上级文件夹，图片用1，2，3，4
                     if (leixing0 != "") {
-                        if (leixing0 == ".jpg") {
+                        if (leixing0 == ".jpg"||leixing0 == ".jpeg"||leixing0 == ".png"||leixing0 == ".gif") {
                             replyMsg(context, `[CQ:at,qq=${context.user_id}]` + setting.replys.sign + `\n[CQ:image,file=file:///${pictemp + leixing0}]\n` + temp2)
                         }
                         else {
@@ -1333,14 +1333,14 @@ async function start() {
         ocrspace.setItem('day', "0");
         ascii2dday.setItem('ascii2d', "0");
         pic1 = await new Promise(function (resolve, reject) {
-            resolve(findSync('./tuku', true).length - 1);
+            resolve(findSync('./tuku', true).length);
         });
         logger2.info("签到图数：" + pic1);
         logger2.info('每日累计次数清0, ' + t.toString() + dayjs(t.toString()).format(' A 星期d'));
         bot('get_status').then(data1 => {
             bot('get_version_info').then(data2 => {
                 let stats = `接受包: ${data1.stat.packet_received || data1.stat.PacketReceived} ， 发送包: ${data1.stat.packet_sent || data1.stat.PacketSent} ， 丢包: ${data1.stat.packet_lost || data1.stat.PacketLost} ， 丢包率：${(data1.stat.packet_lost || data1.stat.PacketLost / (data1.stat.packet_lost || data1.stat.PacketLost + data1.stat.packet_sent || data1.stat.PacketSent) * 100).toFixed(3)}
-                接受消息: ${data1.stat.message_received||data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent||data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times||data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times||data1.stat.LostTimes}`;
+                接受消息: ${data1.stat.message_received || data1.stat.MessageReceived} ， 发送消息: ${data1.stat.message_sent || data1.stat.MessageSent} ， TCP链接断开: ${data1.stat.disconnect_times || data1.stat.DisconnectTimes} ， 账号掉线: ${data1.stat.lost_times || data1.stat.LostTimes}`;
                 logger2.info("get_status: " + JSON.stringify(data1) + "\n" + "get_version_info" + JSON.stringify(data2))
                 logger2.info("go-cqhttp在线中：" + data1.online + "\n" + "go-cqhttp版本：" + data2.version + "\n" + "go语言版本：" + data2.runtime_version + "\n" + "cqhttp版本：" + data2.plugin_version + "\n" + "搜图插件版本：" + version + "\n数据统计：" + stats)
                 bot('send_private_msg', {

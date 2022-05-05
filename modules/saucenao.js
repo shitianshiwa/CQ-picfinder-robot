@@ -241,12 +241,13 @@ async function confuseURL(url, thumbnail) {
         hostname
     } = parse(url);
     if (['danbooru.donmai.us', 'konachan.com', 'yande.re'].includes(hostname)) {
-        const {
+        return url
+        /*const {
             result,
             path,
             error
         } = await shorten(url);
-        return error ? result : `https://j.loli.best/#${path}`;
+        return error ? result : `https://j.loli.best/#${path}`;*/
     }
     return pixivShorten(url, thumbnail);
 }

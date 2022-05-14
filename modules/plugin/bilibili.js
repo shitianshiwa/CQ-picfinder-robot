@@ -778,14 +778,16 @@ async function getMdFromMsg(msg, secord = false) {
     let search;
     if ((search = /bilibili\.com\/bangumi\/media\/md([0-9]+)/.exec(msg))) {
         if (search != null) {
-            return search[1]; //返回md值
-        }
+            return {
+                media_id:search[1]
+            }
+        }//返回md值
     }
     //logger2.info("msg:" + msg);
-    if ((search = /bilibili\.com\/bangumi\/(media|play)\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
-    if ((search = /(b23|acg)\.tv\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2])).media_id;
+    if ((search = /bilibili\.com\/bangumi\/(media|play)\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2]));
+    if ((search = /(b23|acg)\.tv\/(ep[0-9]+|ss[0-9]+)/.exec(msg))) return (await getmedia_id(search[2]));
     if ((search = /(b23|acg)\.tv\/[0-9a-zA-Z]+/.exec(msg)) && secord == false) return getMdFromMsg(await getMdFromShortLink(`http://${search[0]}`), true);
-    if ((search = /^[Ee][Pp][0-9]+$|^[Ss][Ss][0-9]+$/.exec(msg))) return (await getmedia_id(search[0])).media_id;
+    if ((search = /^[Ee][Pp][0-9]+$|^[Ss][Ss][0-9]+$/.exec(msg))) return (await getmedia_id(search[0]));
     return null;
 }
 //https://github.com/Tsuk1ko/cq-picsearcher-bot/commit/936166e37559689be415d614a325aceb558fb869
@@ -862,13 +864,13 @@ async function bilibili(context, replyFunc) {
             }
         } else if (param2 != null) { //新增可解析番剧，纪录片，电影，电视剧信息
             if (gid) {
-                let cacheKeys = [`${gid}-${param2}`]; //支持分群
+                let cacheKeys = [`${gid}-${param2.media_id}`]; //支持分群
                 if (cacheKeys.some(key => cache.has(key))) {
                     return;
                 }
-                [param2].forEach((id, i) => id && cache.set(cacheKeys[i], true));
+                [param2.media_id].forEach((id, i) => id && cache.set(cacheKeys[i], true));
             }
-            let temp = await getMdInfo(param2, gid);
+            let temp = await getMdInfo(param2.media_id, gid);
             if (temp != null) {
                 replyFunc(context, temp);
                 return;

@@ -2,6 +2,108 @@
 
 ## 2022
 
+### 06-20 v2.35.0
+
+- 移除哔哩哔哩解析的视频搜索兜底以避免误触
+- 增加 ascii2d 本地上传搜索功能开关（默认关闭，使用在线 URL API），或许可以解决某些情况下的搜索问题吧，我也不好说（
+- 配置项变更
+  - A `bot.ascii2dLocalUpload`
+
+### 06-10 v2.34.8
+
+- 修复 ascii2d 搜索失败问题
+
+### 06-10 v2.34.7
+
+- 修复 WhatAnime 不能得到正确搜索结果的问题  [#321](../../issues/321)
+
+### 06-05 v2.34.6
+
+含重要漏洞修复，请务必更新
+
+- setu 对管理者私聊不做限制 [#318](../../issues/318)
+- 修复外部文本可注入 CQ 码的问题 [#320](../../issues/320)
+
+### 05-29 v2.34.5
+
+- 哔哩哔哩动态解析支持音频类型 [#317](../../issues/317)
+
+### 05-26 v2.34.4
+
+- 修复哔哩哔哩短链接无法解析的问题  [#315](../../issues/315) [#316](../../issues/316)
+
+### 05-21 v2.34.3
+
+- 哔哩哔哩动态解析支持 4200 和 4308 类型 [#314](../../issues/314)
+- 哔哩哔哩动态解析会尝试去除正文中的链接的一些垃圾参数
+
+### 05-18 v2.34.2
+
+- setu 增加群组黑名单配置 [#304](../../issues/304)
+- 配置项变更
+  - A `bot.setu.blackGroup`
+
+### 05-14 v2.34.1
+
+- 哔哩哔哩解析动态中的视频增加详细信息 [#310](../../issues/310)
+
+### 03-12 v2.34.0
+
+- 修复哔哩哔哩解析可能使用非视频标题进行视频搜索的问题
+- setu 可以设置不发送链接 [#302](../../issues/302)
+- r18 setu 只发链接功能增加对频道的设置
+- 哔哩哔哩推送可以设置@全员，详见 wiki [#293](../../issues/293)
+- 配置项变更
+  - A `bot.setu.sendUrls`
+  - A `bot.setu.r18OnlyUrl.guild`
+  - A `bot.bilibili.push.*.*.dynamicAtAll`
+  - A `bot.bilibili.push.*.*.liveAtAll`
+
+### 03-05 v2.33.7
+
+- 哔哩哔哩解析支持结构化消息 [#300](../../issues/300)
+
+### 03-05 v2.33.6
+
+- 增加 `.npmrc` 默认启用 `legacy-peer-deps` 以解决 npm v7 以上可能出现 peer dependencies 冲突的问题
+- 明日方舟公招计算器增加“资深干员”和“高级资深干员”无法被识别时的处理提示
+
+### 02-26 v2.33.5
+
+- 修复还是没有完全修好的 ascii2d 无法使用的问题 [#283](../../issues/283)
+- 配置项变更
+  - A `bot.cfTLSVersion`
+
+### 02-26 v2.33.4
+
+- 修复没有完全修好的 ascii2d 无法使用的问题 [#283](../../issues/283)
+
+### 02-26 v2.33.3
+
+- 修复 ascii2d 无法使用的问题，感谢 @DiheChen [#283](../../issues/283)
+- `bot.useAscii2dWhenQuotaExcess`, `bot.useAscii2dWhenLowAcc`, `bot.useAscii2dWhenFailed` 的默认值变更回 `true`
+- 更新了一些依赖的版本
+
+### 02-18 v2.33.2
+
+- 修复部分参数在特定情况下无法正常解析的问题 ([#292](../../issues/292))
+
+### 02-13 v2.33.1
+
+- 在频道发送的 setu 无法撤回，是已知现象，go-cqhttp 尚未支持撤回频道消息 ([#290](../../issues/290))
+- 由于频道监管较严，默认禁止在频道请求 r18 setu ([#291](../../issues/291))
+- 配置项变更
+  - A `bot.setu.r18AllowInGuild`
+
+### 02-12 v2.33.0
+
+- 增加频道支持，详情请看 [wiki](../../wiki/%E9%A2%91%E9%81%93%E6%94%AF%E6%8C%81)
+- 检查更新改为使用 GitHub API，不再依赖 isomorphic-git
+- 由于 [#283](../../issues/283) 尚未解决，因此 `bot.useAscii2dWhenQuotaExcess`, `bot.useAscii2dWhenLowAcc`, `bot.useAscii2dWhenFailed` 的默认值更改为 `false`
+- 配置项变更
+  - A `bot.adminTinyId`
+  - A `bot.enableGuild`
+
 ### 02-04 v2.32.1
 
 - 该版本无内容更新，仅为公告用途
@@ -9,7 +111,7 @@
 
 ### 01-08 v2.32.0
 
-- 悲报：ascii2d 因上了 CF，机器人请求可能会被 JS Challenge 拦截，目前没有找到解决方法，如频繁出现 403 错误请将 `bot.useAscii2dWhenQuotaExcess`, `bot.useAscii2dWhenLowAcc`, `bot.useAscii2dWhenFailed` 设为 `false`；如您有好的解决方案请前往 ([#283](../../issues/283)) 献言献策，谢谢
+- 悲报：ascii2d 因上了 CF，机器人请求可能会被 JS Challenge 拦截，目前没有找到解决方法，如频繁出现 403 错误请将 `bot.useAscii2dWhenQuotaExcess`, `bot.useAscii2dWhenLowAcc`, `bot.useAscii2dWhenFailed` 设为 `false`；如您有好的解决方案请前往 [#283](../../issues/283) 献言献策，谢谢
 - 增加自定义 canvas 库的能力，如本项目默认使用的 [@napi-rs/canvas](https://www.npmjs.com/package/@napi-rs/canvas) 出现异常，可切换至使用 [canvas](https://www.npmjs.com/package/canvas)，详情见 wiki
 - 配置项变更
   - A `bot.canvasLibrary`

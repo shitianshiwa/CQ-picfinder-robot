@@ -59,7 +59,7 @@ async function getAntiShieldingBase64(url, fallbackUrl) {
   if (checkBase64RealSize(m1200Base64)) return m1200Base64;
 }
 
-function sendSetu(context, at = true) {
+function sendSetu(context, reply = true) {
   const setuReg = new NamedRegExp(global.config.bot.regs.setu);
   const setuRegExec = setuReg.exec(CQ.unescape(context.message));
   if (!setuRegExec) return false;
@@ -68,6 +68,7 @@ function sendSetu(context, at = true) {
   const replys = global.config.bot.replys;
   const proxy = setting.pximgProxy.trim();
   const isGroupMsg = context.message_type === 'group';
+  const isGuildMsg = context.message_type === 'guild';
 
   // 普通
   const limit = {
@@ -77,30 +78,40 @@ function sendSetu(context, at = true) {
   let delTime = setting.deleteTime;
 
   const regGroup = setuRegExec.groups || {};
-  const r18 = regGroup.r18 && !(isGroupMsg && setting.r18OnlyInWhite && !setting.whiteGroup.includes(context.group_id));
+  const r18 =
+    regGroup.r18 && // 指令带 r18
+    !((isGroupMsg || isGuildMsg) && setting.r18OnlyInWhite && !setting.whiteGroup.includes(context.group_id)) && // 白名单 r18
+    !(isGuildMsg && !setting.r18AllowInGuild); // 频道 r18
   const keyword = regGroup.keyword ? regGroup.keyword.split('&') : undefined;
   const privateR18 = setting.r18OnlyPrivate && r18 && isGroupMsg;
 
   // 群聊还是私聊
   if (isGroupMsg) {
+    // 群黑名单
+    if (setting.blackGroup.includes(context.group_id)) {
+      global.replyMsg(context, replys.setuReject, false, reply);
+      return true;
+    }
     // 群白名单
     if (setting.whiteGroup.includes(context.group_id)) {
       limit.cd = setting.whiteCd;
       delTime = setting.whiteDeleteTime;
     } else if (setting.whiteOnly) {
-      global.replyMsg(context, replys.setuReject);
+      global.replyMsg(context, replys.setuReject, false, reply);
       return true;
     }
   } else {
-    if (!setting.allowPM) {
-      global.replyMsg(context, replys.setuReject);
+    // 管理者无限制
+    if (context.user_id === global.config.bot.admin) limit.value = 0;
+    else if (!setting.allowPM) {
+      global.replyMsg(context, replys.setuReject, false, reply);
       return true;
     }
     limit.cd = 0; // 私聊无cd
   }
 
   if (!logger.applyQuota(context.user_id, limit, 'setu')) {
-    global.replyMsg(context, replys.setuLimit, at);
+    global.replyMsg(context, replys.setuLimit, false, reply);
     return true;
   }
 
@@ -108,33 +119,37 @@ function sendSetu(context, at = true) {
   Axios.post(API_URL, { r18, tag: keyword, size: ['original', 'regular'], proxy: null })
     .then(ret => ret.data)
     .then(async ret => {
-      if (ret.error) return global.replyMsg(context, ret.error, at);
-      if (!ret.data.length) return global.replyMsg(context, replys.setuNotFind, at);
+      if (ret.error) return global.replyMsg(context, ret.error, false, reply);
+      if (!ret.data.length) return global.replyMsg(context, replys.setuNotFind, false, reply);
 
       const setu = ret.data[0];
       const setuUrl = setting.size1200 ? setu.urls.regular : setu.urls.original;
-      const urlMsgs = [`https://pixiv.net/i/${setu.pid} (p${setu.p})`];
-      if (setting.sendPximgProxys.length) {
-        const sendUrls = [];
-        for (const imgProxy of setting.sendPximgProxys) {
-          const imgUrl = getSetuUrlByTemplate(imgProxy, setu, setu.urls.original);
-          sendUrls.push((await urlShorten(setting.shortenPximgProxy, imgUrl)).result);
-        }
-        if (sendUrls.length === 1) urlMsgs.push(`原图地址：${sendUrls[0]}`);
-        else urlMsgs.push('原图地址：', ...sendUrls);
-      }
-
-      if (
+      const onlySendUrl =
         r18 &&
         setting.r18OnlyUrl[
           context.message_type === 'private' && context.sub_type !== 'friend' ? 'temp' : context.message_type
-        ]
-      ) {
-        global.replyMsg(context, urlMsgs.join('\n'), false, at);
+        ];
+      const preSendMsgs = [];
+
+      if (setting.sendUrls || onlySendUrl) {
+        preSendMsgs.push(`https://pixiv.net/i/${setu.pid} (p${setu.p})`);
+        if (setting.sendPximgProxys.length) {
+          const sendUrls = [];
+          for (const imgProxy of setting.sendPximgProxys) {
+            const imgUrl = getSetuUrlByTemplate(imgProxy, setu, setu.urls.original);
+            sendUrls.push((await urlShorten(setting.shortenPximgProxy, imgUrl)).result);
+          }
+          if (sendUrls.length === 1) preSendMsgs.push(`原图地址：${sendUrls[0]}`);
+          else preSendMsgs.push('原图地址：', ...sendUrls);
+        }
+      }
+
+      if (onlySendUrl) {
+        global.replyMsg(context, preSendMsgs.join('\n'), false, reply);
         return;
       }
-      if (privateR18) urlMsgs.push('※ 图片将私聊发送');
-      global.replyMsg(context, urlMsgs.join('\n'), at);
+      if (privateR18) preSendMsgs.push('※ 图片将私聊发送');
+      global.replyMsg(context, preSendMsgs.join('\n'), false, reply);
 
       const getReqUrl = url => (proxy ? getSetuUrlByTemplate(proxy, setu, url) : getLocalReverseProxyURL(url));
       const url = getReqUrl(setuUrl);
@@ -187,7 +202,7 @@ function sendSetu(context, at = true) {
     .catch(e => {
       console.error(`${global.getTime()} [error]`);
       console.error(e);
-      global.replyMsg(context, replys.setuError, at);
+      global.replyMsg(context, replys.setuError, false, reply);
     })
     .finally(() => {
       if (!success) logger.releaseQuota(context.user_id, 'setu');

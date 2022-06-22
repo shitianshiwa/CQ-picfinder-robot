@@ -49,7 +49,7 @@ const getIdFromMsg = async msg => {
   let result = getIdFromNormalLink(msg);
   if (Object.values(result).some(id => id)) return result;
   if ((result = /((b23|acg)\.tv|bili2233.cn)\/[0-9a-zA-Z]+/.exec(msg))) {
-    return getIdFromShortLink(`http://${result[0]}`);
+    return getIdFromShortLink(`https://${result[0]}`);
   }
   return {};
 };
@@ -60,39 +60,53 @@ const markSended = (gid, ...ids) => gid && getCacheKeys(gid, ids).forEach(key =>
 
 async function bilibiliHandler(context) {
   const setting = global.config.bot.bilibili;
+  if (
+    !(
+      setting.despise ||
+      setting.getVideoInfo ||
+      setting.getDynamicInfo ||
+      setting.getArticleInfo ||
+      setting.getLiveRoomInfo
+    )
+  ) {
+    return;
+  }
+
   const { group_id: gid, message: msg } = context;
-  const data = (() => {
-    if (msg.includes('com.tencent.miniapp_01') && msg.includes('哔哩哔哩')) {
-      if (setting.despise) {
-        global.replyMsg(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
+  const { url, title } =
+    (() => {
+      if (!msg.includes('哔哩哔哩')) return;
+      if (msg.includes('com.tencent.miniapp_01')) {
+        // 小程序
+        if (setting.despise) {
+          global.replyMsg(context, CQ.img('https://i.loli.net/2020/04/27/HegAkGhcr6lbPXv.png'));
+        }
+        const data = parseJSON(msg);
+        return {
+          url: _.get(data, 'meta.detail_1.qqdocurl'),
+          title: _.get(data, 'meta.detail_1.desc'),
+        };
+      } else if (msg.includes('com.tencent.structmsg')) {
+        // 结构化消息
+        const data = parseJSON(msg);
+        return {
+          url: _.get(data, 'meta.news.jumpUrl'),
+          title: _.get(data, 'meta.news.title'),
+        };
       }
-      return parseJSON(msg);
-    }
-  })();
-  const qqdocurl = _.get(data, 'meta.detail_1.qqdocurl');
-  const title = _.get(data, 'meta.detail_1.desc');
-  const param = await getIdFromMsg(qqdocurl || msg);
+    })() || {};
+  const param = await getIdFromMsg(url || msg);
   const { aid, bvid, dyid, arid, lrid } = param;
 
   if (gid && getCacheKeys(gid, Object.values(param)).some(key => cache.has(key))) return;
 
-  if (setting.getVideoInfo) {
-    if (aid || bvid) {
-      const { reply, ids } = await getVideoInfo({ aid, bvid });
-      if (reply) {
-        global.replyMsg(context, reply);
-        markSended(gid, ...ids);
-      }
-      return true;
+  if (setting.getVideoInfo && (aid || bvid)) {
+    const { reply, ids } = await getVideoInfo({ aid, bvid });
+    if (reply) {
+      global.replyMsg(context, reply);
+      markSended(gid, ...ids);
     }
-    if (title && !/bilibili\.com\/bangumi|(b23|acg)\.tv\/(ep|ss)/.test(qqdocurl || msg)) {
-      const { reply, ids } = await getSearchVideoInfo(title);
-      if (reply) {
-        global.replyMsg(context, reply);
-        markSended(gid, ...ids);
-      }
-      return true;
-    }
+    return true;
   }
 
   if (setting.getDynamicInfo && dyid) {
